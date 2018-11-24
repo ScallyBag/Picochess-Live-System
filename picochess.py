@@ -1142,7 +1142,7 @@ def main():
                 result = GameResult.ABORT
                 DisplayMsg.show(Message.GAME_ENDS(result=result, play_mode=play_mode, game=game.copy()))
                 DisplayMsg.show(Message.SYSTEM_SHUTDOWN())
-                time.sleep( 5 )
+                time.sleep( 5 ). ## molli: allow more time for shutdown chat 
                 shutdown(args.dgtpi and uci_shell.get() is None, dev=event.dev)  # @todo make independant of remote eng
 
             elif isinstance(event, Event.REBOOT):
