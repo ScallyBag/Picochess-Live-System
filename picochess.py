@@ -23,7 +23,7 @@
 #        1. Voice announcements even if time < 1 minute
 #        2. Possibility to continue playing even if one player runs out of time
 #        3. Pre-Moves: Computer and user moves can be done in rapid sequence
-#           (no need to wait for regestritation of computer move). Even the
+#           (no need to wait for registration of computer move). Even the
 #           own move could be played before computer move - it doesn't matter
 #        4. New flexible ponder mode: no more checks if valid moves, position can
 #           be setup without any restrictions (of course it must be a legal one)
@@ -1016,34 +1016,7 @@ def main():
                     set_wait_state(Message.START_NEW_GAME(game=game.copy(), newgame=newgame))
                 else:
                     logging.debug('no need to start a new game')
-                    if interaction_mode == '21': #Mode.PONDER:
-                        
-                        uci960 = event.pos960 != 518
-                        if not (game.is_game_over() or game_declared):
-                            result = GameResult.ABORT
-                            DisplayMsg.show(Message.GAME_ENDS(result=result, play_mode=play_mode, game=game.copy()))
-                    
-                        game = chess.Board()
-                        if uci960:
-                            game.set_chess960_pos(event.pos960)
-                        # see setup_position
-                        stop_search_and_clock()
-                        if engine.has_chess960():
-                            engine.option('UCI_Chess960', uci960)
-                            engine.send()
-                        engine.newgame(game.copy())
-                        done_computer_fen = None
-                        done_move = pb_move = chess.Move.null()
-                        legal_fens = compute_legal_fens(game.copy())
-                        last_legal_fens = []
-                        legal_fens_after_cmove = [] # molli
-                        is_out_of_time_already = False #molli
-                        time_control.reset()
-                        searchmoves.reset()
-                        game_declared = False
-                        set_wait_state(Message.START_NEW_GAME(game=game.copy(), newgame=newgame))
-                    else:
-                        DisplayMsg.show(Message.START_NEW_GAME(game=game.copy(), newgame=newgame))
+                    DisplayMsg.show(Message.START_NEW_GAME(game=game.copy(), newgame=newgame))
 
             elif isinstance(event, Event.PAUSE_RESUME):
                 if engine.is_thinking():
