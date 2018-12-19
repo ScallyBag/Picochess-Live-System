@@ -48,10 +48,12 @@ var boardStatusEl = $('#BoardStatus'),
 
 var gameHistory, fenHash, currentPosition;
 const BACKEND_SERVER_PREFIX = 'http://drshivaji.com:3334';
+//const BACKEND_SERVER_PREFIX = '';
 //const BACKEND_SERVER_PREFIX = "http://localhost:7777";
 
 // remote begin
 var remote_server_prefix = "drshivaji.com:9876";
+//var remote_server_prefix = 'http://drshivaji.com:3334';
 //var remote_server_prefix = "localhost:7766";
 var remote_ws = null;
 // remote end
@@ -197,8 +199,8 @@ var gameDataTable = $('#GameTable').DataTable( {
             d.fen = dataTableFen;
             d.db = '#ref';
         },
-        'error': function (xhr, error, thrown) {
-            console.warn(xhr);
+    'error': function (xhr, error, thrown) {
+        console.warn(xhr);
         }
     },
     'initComplete': function() {
@@ -636,14 +638,16 @@ var updateStatus = function() {
     }
 
     dataTableFen = fen;
-    bookDataTable.ajax.reload();
-    gameDataTable.ajax.reload();
+    
 
     if ($('#' + strippedFen).position()) {
         pgnEl.scrollTop(0);
         var y_position = $('#' + strippedFen).position().top;
         pgnEl.scrollTop(y_position);
     }
+                                  
+    bookDataTable.ajax.reload(); //molli
+    gameDataTable.ajax.reload(); //molli
 };
 
 function toDests(chess) {
@@ -679,9 +683,10 @@ var onSnapEnd = function(source, target) {
     });
     updateCurrentPosition(move, tmpGame);
     updateChessGround();
-    updateStatus();
+    //updateStatus(); //molli
     $.post('/channel', {action: 'move', fen: currentPosition.fen, source: source, target: target}, function(data) {
     });
+    updateStatus(); // molli
 };
 
 function updateChessGround() {
