@@ -120,12 +120,91 @@ def main():
     def expired_fen_timer():
         """Handle times up for an unhandled fen string send from board."""
         nonlocal fen_timer_running
+        nonlocal last_legal_fens
+        nonlocal searchmoves
+        nonlocal legal_fens
+        nonlocal legal_fens_after_cmove # molli
+        nonlocal game
+        nonlocal done_move
+        nonlocal done_computer_fen
+        nonlocal pb_move
+        nonlocal fen_save
+        nonlocal error_fen
+        
         fen_timer_running = False
         
         if error_fen:
-            logging.info('wrong fen %s for 3secs', error_fen)
-            DisplayMsg.show(Message.WRONG_FEN())
-            DisplayMsg.show(Message.EXIT_MENU())
+            if interaction_mode == Mode.PONDER:
+                ##DisplayMsg.show(Message.WRONG_FEN())
+                ##DisplayMsg.show(Message.EXIT_MENU())
+                ## molli: no error in ponder mode => start new game with current fen
+                ## and try to keep same player to play (white or black) but check
+                ## if it is a legal position (otherwise switch sides or return error)
+                logging.debug('Molli Start flexible Ponder with fen: %s', fen)
+                
+                fen1 = fen_save
+                fen2 = fen_save
+                
+                if game.turn == chess.WHITE:
+                    fen1 += ' w KQkq - 0 1'
+                    fen2 += ' b KQkq - 0 1'
+                else:
+                    fen1 += ' b KQkq - 0 1'
+                    fen2 += ' w KQkq - 0 1'
+                
+                # ask python-chess to correct the castling string
+                bit_board = chess.Board(fen1)
+                bit_board.set_fen(bit_board.fen())
+                logging.debug('Molli First Converted Bitboard Fen: %s', bit_board.fen())
+                if bit_board.is_valid():
+                    logging.debug('Molli First fen ist valid!')
+                    game = chess.Board(bit_board.fen())
+                    stop_search_and_clock()
+                    engine.newgame(game.copy())
+                    done_computer_fen = None
+                    done_move = pb_move = chess.Move.null()
+                    time_control.reset()
+                    searchmoves.reset()
+                    game_declared = False
+                    turn = game.turn
+                    legal_fens = compute_legal_fens(game.copy())
+                    legal_fens_after_cmove = []
+                    last_legal_fens = []
+                    assert engine.is_waiting(), 'engine not waiting! thinking status: %s' % engine.is_thinking()
+                    engine.position(copy.deepcopy(game))
+                    engine.ponder()
+                else:
+                    # ask python-chess to correct the castling string
+                    bit_board = chess.Board(fen2)
+                    bit_board.set_fen(bit_board.fen())
+                    logging.debug('Molli Second converted Bitboard Fen: %s', bit_board.fen())
+                    if bit_board.is_valid():
+                        logging.debug('Molli Second fen ist valid!')
+                        game = chess.Board(bit_board.fen())
+                        stop_search_and_clock()
+                        engine.newgame(game.copy())
+                        done_computer_fen = None
+                        done_move = pb_move = chess.Move.null()
+                        time_control.reset()
+                        searchmoves.reset()
+                        game_declared = False
+                        turn = game.turn
+                        legal_fens = compute_legal_fens(game.copy())
+                        legal_fens_after_cmove = []
+                        last_legal_fens = []
+                        assert engine.is_waiting(), 'engine not waiting! thinking status: %s' % engine.is_thinking()
+                        engine.position(copy.deepcopy(game))
+                        engine.ponder()
+                    else:
+                        logging.debug('Molli Invalid  Fen: %s', bit_board.fen())
+                        logging.info('wrong fen %s for 3secs', error_fen)
+                        DisplayMsg.show(Message.WRONG_FEN())
+                        DisplayMsg.show(Message.EXIT_MENU())
+            
+            else:
+                logging.info('wrong fen %s for 3secs', error_fen)
+                DisplayMsg.show(Message.WRONG_FEN())
+                DisplayMsg.show(Message.EXIT_MENU())
 
     def stop_fen_timer():
         """Stop the fen timer cause another fen string been send."""
@@ -358,9 +437,11 @@ def main():
         nonlocal pb_move
         nonlocal error_fen
         nonlocal play_mode
-        nonlocal try_again
+        nonlocal fen_save
 
         handled_fen = True
+        fen_save = fen
+        
         # Check for same position
         if fen == game.board_fen():
             logging.debug('Already in this fen: %s', fen)
@@ -484,76 +565,11 @@ def main():
         if handled_fen:
             error_fen = None
         else:
-            if interaction_mode == Mode.PONDER:
-                ##DisplayMsg.show(Message.WRONG_FEN())
-                ##DisplayMsg.show(Message.EXIT_MENU())
-                ## molli: no error in ponder mode => start new game with current fen
-                ## and try to keep same player to play (white or black) but check
-                ## if it is a legal position (otherwise switch sides or return error)
-                logging.debug('Molli Start flexible Ponder with fen: %s', fen)
-                    
-                fen1 = fen
-                fen2 = fen
-                    
-                if game.turn == chess.WHITE:
-                    fen1 += ' w KQkq - 0 1'
-                    fen2 += ' b KQkq - 0 1'
-                else:
-                    fen1 += ' b KQkq - 0 1'
-                    fen2 += ' w KQkq - 0 1'
-
-                # ask python-chess to correct the castling string
-                bit_board = chess.Board(fen1)
-                bit_board.set_fen(bit_board.fen())
-                logging.debug('Molli First Converted Bitboard Fen: %s', bit_board.fen())
-                if bit_board.is_valid():
-                    logging.debug('Molli First fen ist valid!')
-                    game = chess.Board(bit_board.fen())
-                    stop_search_and_clock()
-                    engine.newgame(game.copy())
-                    done_computer_fen = None
-                    done_move = pb_move = chess.Move.null()
-                    time_control.reset()
-                    searchmoves.reset()
-                    game_declared = False
-                    turn = game.turn
-                    legal_fens = compute_legal_fens(game.copy())
-                    legal_fens_after_cmove = []
-                    last_legal_fens = []
-                    assert engine.is_waiting(), 'engine not waiting! thinking status: %s' % engine.is_thinking()
-                    engine.position(copy.deepcopy(game))
-                    engine.ponder()
-                else:
-                    # ask python-chess to correct the castling string
-                    bit_board = chess.Board(fen2)
-                    bit_board.set_fen(bit_board.fen())
-                    logging.debug('Molli Second converted Bitboard Fen: %s', bit_board.fen())
-                    if bit_board.is_valid():
-                        logging.debug('Molli Second fen ist valid!')
-                        game = chess.Board(bit_board.fen())
-                        stop_search_and_clock()
-                        engine.newgame(game.copy())
-                        done_computer_fen = None
-                        done_move = pb_move = chess.Move.null()
-                        time_control.reset()
-                        searchmoves.reset()
-                        game_declared = False
-                        turn = game.turn
-                        legal_fens = compute_legal_fens(game.copy())
-                        legal_fens_after_cmove = []
-                        last_legal_fens = []
-                        assert engine.is_waiting(), 'engine not waiting! thinking status: %s' % engine.is_thinking()
-                        engine.position(copy.deepcopy(game))
-                        engine.ponder()
-                    else:
-                        logging.debug('Molli Invalid  Fen: %s', bit_board.fen())
-                        error_fen = fen
-                        start_fen_timer()
-            else:
-                error_fen = fen
-                start_fen_timer()
+            error_fen = fen
+            start_fen_timer()
 
     def set_wait_state(msg: Message, start_search=True):
+        nonlocal fen_save ##molli
         """Enter engine waiting (normal mode) and maybe (by parameter) start pondering."""
         if not done_computer_fen:
             nonlocal play_mode, legal_fens, last_legal_fens
@@ -576,6 +592,7 @@ def main():
             if interaction_mode == Mode.BRAIN and not done_computer_fen:
                 brain(game, time_control)
             if interaction_mode in (Mode.ANALYSIS, Mode.KIBITZ, Mode.PONDER):
+                fen_save = game.board_fen() ##molli
                 analyse(game, msg)
                 return
             if interaction_mode in (Mode.OBSERVE, Mode.REMOTE):
@@ -817,7 +834,9 @@ def main():
     fen = game.fen()
     legal_fens = compute_legal_fens(game.copy())  # Compute the legal FENs
     legal_fens_after_cmove = [] # molli: Compute the legal FENs after having done the computer move
-    is_out_of_time_already = False # molli: out of time message only once 
+    is_out_of_time_already = False # molli: out of time message only once
+    fen_save = '' ##molli
+    
     all_books = get_opening_books()
     try:
         book_index = [book['file'] for book in all_books].index(args.book)
@@ -863,7 +882,6 @@ def main():
     fen_timer = threading.Timer(3, expired_fen_timer)
     fen_timer_running = False
     error_fen = None
-    try_again = 0
 
     pb_move = chess.Move.null()  # safes the best ponder move so far (for permanent brain use)
 
@@ -983,6 +1001,7 @@ def main():
                 time_control.reset()
                 searchmoves.reset()
                 game_declared = False
+                fen_save = game.board_fen()
                 set_wait_state(Message.START_NEW_GAME(game=game.copy(), newgame=True))
 
             elif isinstance(event, Event.NEW_GAME):
@@ -1013,10 +1032,39 @@ def main():
                     time_control.reset()
                     searchmoves.reset()
                     game_declared = False
+                    fen_save = game.board_fen()
                     set_wait_state(Message.START_NEW_GAME(game=game.copy(), newgame=newgame))
                 else:
                     logging.debug('no need to start a new game')
-                    DisplayMsg.show(Message.START_NEW_GAME(game=game.copy(), newgame=newgame))
+                    if interaction_mode == Mode.PONDER:
+                        uci960 = event.pos960 != 518
+                    
+                        if not (game.is_game_over() or game_declared):
+                            result = GameResult.ABORT
+                            DisplayMsg.show(Message.GAME_ENDS(result=result, play_mode=play_mode, game=game.copy()))
+                    
+                        game = chess.Board()
+                        if uci960:
+                            game.set_chess960_pos(event.pos960)
+                        # see setup_position
+                        stop_search_and_clock()
+                        if engine.has_chess960():
+                            engine.option('UCI_Chess960', uci960)
+                            engine.send()
+                        engine.newgame(game.copy())
+                        done_computer_fen = None
+                        done_move = pb_move = chess.Move.null()
+                        legal_fens = compute_legal_fens(game.copy()) ##molli
+                        last_legal_fens = []#molli
+                        legal_fens_after_cmove = [] # molli
+                        is_out_of_time_already = False #molli
+                        time_control.reset()
+                        searchmoves.reset()
+                        game_declared = False
+                        fen_save = game.board_fen()
+                        set_wait_state(Message.START_NEW_GAME(game=game.copy(), newgame=newgame))
+                    else:
+                        DisplayMsg.show(Message.START_NEW_GAME(game=game.copy(), newgame=newgame))
 
             elif isinstance(event, Event.PAUSE_RESUME):
                 if engine.is_thinking():
