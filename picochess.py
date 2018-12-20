@@ -134,7 +134,7 @@ def main():
         fen_timer_running = False
         
         if error_fen:
-            if interaction_mode == Mode.PONDER and game.chess960_pos() != 518:
+            if interaction_mode == Mode.PONDER and  fen_save != 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR':
                 ##DisplayMsg.show(Message.WRONG_FEN())
                 ##DisplayMsg.show(Message.EXIT_MENU())
                 ## molli: no error in ponder mode => start new game with current fen
