@@ -1142,6 +1142,45 @@ def main():
                     if best_move_displayed:
                         DisplayMsg.show(Message.SWITCH_SIDES(game=game.copy(), move=move))
 
+                elif interaction_mode == Mode.REMOTE:
+                    if not engine.is_waiting():
+                        stop_search_and_clock()
+        
+                    last_legal_fens = []
+                    legal_fens_after_cmove = [] # molli
+                    best_move_displayed = done_computer_fen
+                    if best_move_displayed:
+                        move = done_move
+                        done_computer_fen = None
+                        done_move = pb_move = chess.Move.null()
+                    else:
+                        move = chess.Move.null()  # not really needed
+            
+                    play_mode = PlayMode.USER_WHITE if play_mode == PlayMode.USER_BLACK else PlayMode.USER_BLACK
+                    text = play_mode.value  # type: str
+                    msg = Message.PLAY_MODE(play_mode=play_mode, play_mode_text=dgttranslate.text(text))
+                    
+                    if time_control.mode == TimeMode.FIXED:
+                        time_control.reset()
+        
+                    legal_fens = []
+                    game_end = check_game_state(game, play_mode)
+                    if game_end:
+                        DisplayMsg.show(msg)
+                    else:
+                        cond1 = game.turn == chess.WHITE and play_mode == PlayMode.USER_BLACK
+                        cond2 = game.turn == chess.BLACK and play_mode == PlayMode.USER_WHITE
+                        if cond1 or cond2:
+                            time_control.reset_start_time()
+                            think(game, time_control, msg)
+                        else:
+                            DisplayMsg.show(msg)
+                            start_clock()
+                            legal_fens = compute_legal_fens(game.copy())
+
+                    if best_move_displayed:
+                        DisplayMsg.show(Message.SWITCH_SIDES(game=game.copy(), move=move))
+
             elif isinstance(event, Event.DRAWRESIGN):
                 if not game_declared:  # in case user leaves kings in place while moving other pieces
                     stop_search_and_clock()
