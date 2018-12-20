@@ -134,7 +134,7 @@ def main():
         fen_timer_running = False
         
         if error_fen:
-            if interaction_mode == Mode.PONDER:
+            if interaction_mode == Mode.PONDER and game.chess960_pos() != 518:
                 ##DisplayMsg.show(Message.WRONG_FEN())
                 ##DisplayMsg.show(Message.EXIT_MENU())
                 ## molli: no error in ponder mode => start new game with current fen
@@ -592,7 +592,7 @@ def main():
             if interaction_mode == Mode.BRAIN and not done_computer_fen:
                 brain(game, time_control)
             if interaction_mode in (Mode.ANALYSIS, Mode.KIBITZ, Mode.PONDER):
-                fen_save = game.board_fen() ##molli
+                ##fen_save = game.board_fen() ##molli
                 analyse(game, msg)
                 return
             if interaction_mode in (Mode.OBSERVE, Mode.REMOTE):
@@ -1015,6 +1015,9 @@ def main():
                         DisplayMsg.show(Message.GAME_ENDS(result=result, play_mode=play_mode, game=game.copy()))
 
                     game = chess.Board()
+                    
+                    game.turn = chess.WHITE ##molli
+                    play_mode = PlayMode.USER_WHITE #molli
                     if uci960:
                         game.set_chess960_pos(event.pos960)
                     # see setup_position
@@ -1036,35 +1039,7 @@ def main():
                     set_wait_state(Message.START_NEW_GAME(game=game.copy(), newgame=newgame))
                 else:
                     logging.debug('no need to start a new game')
-                    if interaction_mode == Mode.PONDER:
-                        uci960 = event.pos960 != 518
-                    
-                        if not (game.is_game_over() or game_declared):
-                            result = GameResult.ABORT
-                            DisplayMsg.show(Message.GAME_ENDS(result=result, play_mode=play_mode, game=game.copy()))
-                    
-                        game = chess.Board()
-                        if uci960:
-                            game.set_chess960_pos(event.pos960)
-                        # see setup_position
-                        stop_search_and_clock()
-                        if engine.has_chess960():
-                            engine.option('UCI_Chess960', uci960)
-                            engine.send()
-                        engine.newgame(game.copy())
-                        done_computer_fen = None
-                        done_move = pb_move = chess.Move.null()
-                        legal_fens = compute_legal_fens(game.copy()) ##molli
-                        last_legal_fens = []#molli
-                        legal_fens_after_cmove = [] # molli
-                        is_out_of_time_already = False #molli
-                        time_control.reset()
-                        searchmoves.reset()
-                        game_declared = False
-                        fen_save = game.board_fen()
-                        set_wait_state(Message.START_NEW_GAME(game=game.copy(), newgame=newgame))
-                    else:
-                        DisplayMsg.show(Message.START_NEW_GAME(game=game.copy(), newgame=newgame))
+                    DisplayMsg.show(Message.START_NEW_GAME(game=game.copy(), newgame=newgame))
 
             elif isinstance(event, Event.PAUSE_RESUME):
                 if engine.is_thinking():
