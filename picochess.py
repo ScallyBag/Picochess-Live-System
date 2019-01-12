@@ -527,6 +527,12 @@ def main():
             game.push(done_move)
             done_computer_fen = None
             done_move = chess.Move.null()
+            searchmoves.reset()                     ## molli: bugfix premove with ponder hit
+            time_control.add_time(not game.turn)
+            start_clock()
+            if interaction_mode == Mode.BRAIN:
+                brain(game, time_control)
+                
             legal_fens_after_cmove = []
             legal_fens = compute_legal_fens(game.copy()) # molli new legal fance based on cmove
             # standard user move handling
