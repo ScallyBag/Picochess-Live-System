@@ -22,7 +22,7 @@ If you don't wnat to replicate/replace the whole repository on your Pi and only 
 4. 'app.js' in '/opt/picochess/web/picocweb/static/js'
 
 Unfortunately picochess (version 0.9N and this 1.0 version) is at the moment not compatible to python-chess version 24.0 and higher so don't upgrade python-chess.
-You even should stay with 22.1 version because of incompatibilties with web server display and elo angines.  
+You even should stay with 22.1 version because of incompatibilties with web server display and elo engines.  
  
 
 [![Join the chat at https://gitter.im/picochess/Lobby](https://badges.gitter.im/picochess/Lobby.svg)](https://gitter.im/picochess/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
