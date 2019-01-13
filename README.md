@@ -14,7 +14,7 @@ Picochess V 0.9N with the following changes/enhancements:
 Switching sides is now also possible in remote mode: just press the lever.
 
 
-If you don't wnat to replicate/replace the whole repository on your Pi and only if you are already on picochess version 0.9N, you only need to replace the following files in the picochess directory:
+If you don't want to replicate/replace the whole repository on your Pi and only if you are already on picochess version 0.9N, you only need to replace the following files in the picochess directory:
 
 1. 'picochess.py' in '/opt/picochess'
 2. 'utilities.py' in '/opt/picochess'
