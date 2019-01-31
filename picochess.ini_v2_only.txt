@@ -1,0 +1,38 @@
+###############################################################################
+## Enhancements from v2.00 on
+###############################################################################
+
+### ==========================
+### = Enhancements from v2.0 =
+### ==========================
+
+## For rolling information display ponder-interval should at least set to 4 or 5 seconds!
+
+## Rolling information display in "normal" mode (time/score/depth/hintmove) is switched off by default
+## If you want this please uncomment next line
+## rolling-display-normal = True
+
+## Rolling information display in "ponder on" mode (time/score/depth/hintmove) is switched off by default
+## If you don't want this please uncomment next line
+rolling-display-ponder = True
+
+# Flexible analysis option in Analysis (old Ponder) mode (no valid move checks, etc.) is switched on by default
+## If don't you want this please uncomment next line
+#flexible-analysis = False
+
+## Pre-move detection is switched on by default
+## If don't you want this please uncomment next line
+#premove = False
+
+## Probability of spoken comments during the game is set to 100% by default. You can set it from 0% - 100%
+## Comments are only spoken if you have a specific pico voice set up with additional audio files
+## So if you don't have any voice set up with audio commentary files or you use a standard pico voice, there
+## is no need to change this parameter at all 
+#comment-factor = 100
+
+## Automatically continue last game after picochess (re-)start is switched off by default.
+## If you want this feature please uncomment next line 
+#continue-game = True
+
+
+

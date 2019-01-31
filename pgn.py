@@ -35,6 +35,7 @@ import chess.pgn
 from utilities import DisplayMsg
 from dgt.api import Message
 from dgt.util import GameResult, PlayMode, Mode
+import copy
 
 
 class Emailer(object):
@@ -150,6 +151,7 @@ class PgnDisplay(DisplayMsg, threading.Thread):
     def __init__(self, file_name: str, emailer: Emailer):
         super(PgnDisplay, self).__init__()
         self.file_name = file_name
+        self.last_file_name = 'games' + os.sep + 'last_game.pgn'
         self.emailer = emailer
 
         self.engine_name = '?'
@@ -201,13 +203,23 @@ class PgnDisplay(DisplayMsg, threading.Thread):
             pgn_game.headers['BlackElo'] = self.user_elo
 
         pgn_game.headers['Time'] = self.startime
+        
+        pgn_game_last = copy.copy(pgn_game)
 
         # Save to file
+        ## molli save game in a single last game
+        last_file = open(self.last_file_name, 'w')
+        last_exporter = chess.pgn.FileExporter(last_file)
+        pgn_game_last.accept(last_exporter)
+        last_file.flush()
+        last_file.close()
+        
         file = open(self.file_name, 'a')
         exporter = chess.pgn.FileExporter(file)
         pgn_game.accept(exporter)
         file.flush()
         file.close()
+        
         self.emailer.send('Game PGN', str(pgn_game), self.file_name)
 
     def _process_message(self, message):
