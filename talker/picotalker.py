@@ -19,10 +19,10 @@
 # apt-get install vorbis-tools
 # apt-get install sox
 
-########################################################################
-# Molli: voice comments based on Fritz audio files
-#        to be activated via pico voice menue
-########################################################################
+###########################################################################
+# Molli: Adding framework for voice comments based on different events
+#        (to be activated via pico voice menue and additional audio files)
+###########################################################################
 
 import threading
 import logging
@@ -38,6 +38,8 @@ from utilities import DisplayMsg
 from timecontrol import TimeControl
 from dgt.api import Message
 from dgt.util import GameResult, PlayMode, Voice
+#molli
+import os
 
 
 class PicoTalker(object):
@@ -97,10 +99,22 @@ class PicoTalkerDisplay(DisplayMsg, threading.Thread):
     USER = 'user'
     COMPUTER = 'computer'
     SYSTEM = 'system'
-    talkfile = ''
-    rand = '' ##molli
     
-    def __init__(self, user_voice: str, computer_voice: str, speed_factor: int, setpieces_voice: bool):
+    c_taken     = False #molli
+    c_castle    = False #molli
+    c_knight    = False #molli
+    c_rook      = False #molli
+    c_king      = False #molli
+    c_bishop    = False #molli
+    c_pawn      = False #molli
+    c_queen     = False #molli
+    c_check     = False #molli
+    c_mate      = False #molli
+    c_stalemate = False #molli
+    c_draw      = False #molli
+    
+    # add voice comment-factor
+    def __init__(self, user_voice: str, computer_voice: str, speed_factor: int, setpieces_voice: bool, comment_factor: int):
         """
         Initialize a PicoTalkerDisplay with voices for the user and/or computer players.
 
@@ -115,7 +129,37 @@ class PicoTalkerDisplay(DisplayMsg, threading.Thread):
         self.low_time = False
         self.play_game = None  # saves the game after a computer move - used for "setpieces" to speak the move again
         self.setpieces_voice = setpieces_voice
-
+        ##molli
+        self.c_no_beforemove = 0
+        self.c_no_cmove      = 0
+        self.c_no_umove      = 0
+        self.c_no_poem       = 0
+        self.c_no_chat       = 0
+        self.c_no_newgame    = 0
+        self.c_no_rmove      = 0
+        self.c_no_uwin       = 0
+        self.c_no_uloose     = 0
+        self.c_no_ublack     = 0
+        self.c_no_uwhite     = 0
+        self.c_no_start      = 0
+        self.c_no_name       = 0
+        self.c_no_shutdown   = 0
+        self.c_no_takeback   = 0
+        self.c_no_taken      = 0
+        self.c_no_check      = 0
+        self.c_no_mate       = 0
+        self.c_no_stalemate  = 0
+        self.c_no_draw       = 0
+        self.c_no_castle     = 0
+        self.c_no_king       = 0
+        self.c_no_queen      = 0
+        self.c_no_rook       = 0
+        self.c_no_bishop     = 0
+        self.c_no_knight     = 0
+        self.c_no_pawn       = 0
+        
+        self.c_comment_factor = comment_factor
+        
         if user_voice:
             logging.debug('creating user voice: [%s]', str(user_voice))
             self.set_user(PicoTalker(user_voice, self.speed_factor))
@@ -123,9 +167,52 @@ class PicoTalkerDisplay(DisplayMsg, threading.Thread):
             logging.debug('creating computer voice: [%s]', str(computer_voice))
             self.set_computer(PicoTalker(computer_voice, self.speed_factor))
 
+    def calc_no_group_comments(self, filestring: str):
+        """
+        molli: Calculate number of generic filestring files in voice folder
+        """
+        c_group_no = 0
+        
+        path = self.computer_picotalker.voice_path
+        
+        for file in os.listdir(path):
+            if file.startswith(filestring):
+                c_group_no += 1
+        
+        return c_group_no
+    
     def set_computer(self, picotalker):
         """Set the computer talker."""
         self.computer_picotalker = picotalker
+        """molli: set correct number and assign it to voice group comment variables"""
+        self.c_no_beforemove = self.calc_no_group_comments('f_beforemove')
+        ##logging.debug('molli: calculate f_beforemove [%s]', str(self.c_no_beforemove))
+        self.c_no_cmove      = self.calc_no_group_comments('f_cmove')
+        self.c_no_umove      = self.calc_no_group_comments('f_umove')
+        self.c_no_poem       = self.calc_no_group_comments('f_poem')
+        self.c_no_chat       = self.calc_no_group_comments('f_chat')
+        self.c_no_newgame    = self.calc_no_group_comments('f_newgame')
+        self.c_no_rmove      = self.calc_no_group_comments('f_rmove')
+        self.c_no_uwin       = self.calc_no_group_comments('f_uwin')
+        self.c_no_uloose     = self.calc_no_group_comments('f_uloose')
+        self.c_no_ublack     = self.calc_no_group_comments('f_ublack')
+        self.c_no_uwhite     = self.calc_no_group_comments('f_uwhite')
+        self.c_no_start      = self.calc_no_group_comments('f_start')
+        self.c_no_name       = self.calc_no_group_comments('f_name')
+        self.c_no_shutdown   = self.calc_no_group_comments('f_shutdown')
+        self.c_no_takeback   = self.calc_no_group_comments('f_takeback')
+        self.c_no_taken      = self.calc_no_group_comments('f_taken')
+        self.c_no_check      = self.calc_no_group_comments('f_check')
+        self.c_no_mate       = self.calc_no_group_comments('f_mate')
+        self.c_no_stalemate  = self.calc_no_group_comments('f_stalemate')
+        self.c_no_draw       = self.calc_no_group_comments('f_draw')
+        self.c_no_castle     = self.calc_no_group_comments('f_castle')
+        self.c_no_king       = self.calc_no_group_comments('f_king')
+        self.c_no_queen      = self.calc_no_group_comments('f_queen')
+        self.c_no_rook       = self.calc_no_group_comments('f_rook')
+        self.c_no_bishop     = self.calc_no_group_comments('f_bishop')
+        self.c_no_knight     = self.calc_no_group_comments('f_knight')
+        self.c_no_pawn       = self.calc_no_group_comments('f_pawn')
 
     def set_user(self, picotalker):
         """Set the user talker."""
@@ -156,16 +243,198 @@ class PicoTalkerDisplay(DisplayMsg, threading.Thread):
             if self.user_picotalker:
                 self.user_picotalker.talk(sounds)
 
+    def get_total_cgroup(self, c_group: str):
+    ## molli: define number of possible comments in differrent event groups
+    ##        together with a probability factor one can control how
+    ##        often a group comment will be spoken
+        c_number = 0
+        c_prob   = 0
+        if c_group == 'beforemove':
+            c_prob   = 10
+            c_number = self.c_no_beforemove
+        elif c_group == 'cmove':
+            c_prob = 20
+            c_number = self.c_no_cmove
+        elif c_group == 'umove':
+            c_prob = 20
+            c_number = self.c_no_umove
+        elif c_group == 'poem':
+            c_prob = 20
+            c_number = self.c_no_poem
+        elif c_group == 'chat':
+            c_prob = 20
+            c_number = self.c_no_chat
+        elif c_group == 'newgame':
+            c_prob = 100
+            c_number = self.c_no_newgame
+        elif c_group == 'rmove':
+            c_prob   = 20
+            c_number = self.c_no_rmove
+        elif c_group == 'uwin':
+            c_prob = 100
+            c_number = self.c_no_uwin
+        elif c_group == 'uloose':
+            c_prob = 100
+            c_number = self.c_no_uloose
+        elif c_group == 'ublack':
+            c_prob = 70
+            c_number = self.c_no_ublack
+        elif c_group == 'uwhite':
+            c_prob = 70
+            c_number = self.c_no_uwhite
+        elif c_group == 'start':
+            c_prob = 100
+            c_number = self.c_no_start
+        elif c_group == 'name':
+            c_prob = 100
+            c_number = self.c_no_name
+        elif c_group == 'shutdown':
+            c_prob = 100
+            c_number = self.c_no_shutdown
+        elif c_group == 'takeback':
+            c_prob = 100
+            c_number = self.c_no_takeback
+        elif c_group == 'taken':
+            c_prob = 50
+            c_number = self.c_no_taken
+        elif c_group == 'check':
+            c_prob = 50
+            c_number = self.c_no_check
+        elif c_group == 'mate':
+            c_prob = 100
+            c_number = self.c_no_mate
+        elif c_group == 'stalemate':
+            c_prob = 100
+            c_number = self.c_no_stalemate
+        elif c_group == 'draw':
+            c_prob = 100
+            c_number = self.c_no_draw
+        elif c_group == 'castle':
+            c_prob = 50
+            c_number = self.c_no_castle
+        elif c_group == 'king':
+            c_prob = 50
+            c_number = self.c_no_king
+        elif c_group == 'queen':
+            c_prob = 50
+            c_number = self.c_no_queen
+        elif c_group == 'rook':
+            c_prob = 50
+            c_number = self.c_no_rook
+        elif c_group == 'bishop':
+            c_prob = 50
+            c_number = self.c_no_bishop
+        elif c_group == 'knight':
+            c_prob = 50
+            c_number = self.c_no_knight
+        elif c_group == 'pawn':
+            c_prob = 50
+            c_number = self.c_no_pawn
+        else:
+            c_prob   = 0
+            c_number = 0
+        
+        return c_number, c_prob
+
+    def calc_comment(self, c_group):
+        ## molli: define number of possible comments in differrent event groups
+        ##        together with a probability factor one can control how
+        ##        often a group comment will be spoken
+        talkfile   = ''
+        c_rand_str = ''
+        c_rand     = 0
+        c_number   = 0
+        c_prob     = 0
+        c_total    = 0
+        
+        ##logging.debug('molli calc_comment for group [%s]', c_group)
+        
+        ## get total numbers of possible comments for this event group in dependence of
+        ## selected comment speech and lanuage
+        
+        c_total, c_prob = self.get_total_cgroup(c_group)
+        
+        if c_prob == 0:
+            return talkfile
+        ## consider probability factor from picochess.ini
+        c_prob =  round(c_prob * (self.c_comment_factor/100))
+        
+        c_number =  round(c_total*(100/c_prob))
+        
+        if c_number > 1:
+            c_rand = randint(1,c_number)
+        else:
+            c_rand = c_number
+        
+        c_rand_str = str(c_rand)
+        
+        if c_rand == 0:
+            talkfile = ''
+        elif c_rand <= c_total:
+            talkfile = 'f_' + c_group + c_rand_str + '.ogg'
+        else:
+            talkfile = ''
+        
+        return talkfile
     
+    def comment(self, c_group):
+        ## molli: define number of possible comments in differrent event groups
+        ##        together with a probability factor one can control how
+        ##        often a group comment will be spoke
+        talkfile = ''
+        
+        ## get total numbers of possible comments for this event group in dependence of
+        ## selected comment speech and lanuage
+        
+        talkfile = self.calc_comment(c_group)
+        
+        if talkfile != '':
+            self.talk([talkfile])
+                
+    def move_comment(self):
+        talkfile = ''
+        
+        if PicoTalkerDisplay.c_taken:
+            talkfile = self.calc_comment('taken')
+        elif PicoTalkerDisplay.c_bishop:
+            talkfile = self.calc_comment('bishop')
+        elif PicoTalkerDisplay.c_queen:
+            talkfile = self.calc_comment('queen')
+        elif PicoTalkerDisplay.c_knight:
+            talkfile = self.calc_comment('knight')
+        elif PicoTalkerDisplay.c_rook:
+            talkfile = self.calc_comment('rook')
+        elif PicoTalkerDisplay.c_king:
+            talkfile = self.calc_comment('king')
+        elif PicoTalkerDisplay.c_castle:
+            talkfile = self.calc_comment('castle')
+        elif PicoTalkerDisplay.c_pawn:
+            talkfile = self.calc_comment('pawn')
+        else:
+            ## pawn piesces are not spoken
+            ## (no flag is set) => but we comment them!
+            talkfile = self.calc_comment('pawn')
+
+        if talkfile != '':
+            self.talk([talkfile])
+                
+        if PicoTalkerDisplay.c_mate:
+            talkfile = ''
+        elif PicoTalkerDisplay.c_stalemate:
+            talkfile = ''
+        elif PicoTalkerDisplay.c_draw:
+            talkfile = ''
+        elif PicoTalkerDisplay.c_check:
+            talkfile = self.calc_comment('check')
+        else:
+            talkfile = ''
+
+        if talkfile != '':
+            self.talk([talkfile])
+    
+
     def run(self):
         """Start listening for Messages on our queue and generate speech as appropriate."""
-        ## molli: number of possible comments in differrent groups
-        ##        should be equal or even greater than real existing ones
-        ##        By this one con control how often a comment will be spoken
-        cmove_no_78  = 600 ## existing: 78 random out of 600
-        chat_no_74   = 600 ## existing: 74 random out of 600
-        poem_no_59   = 500 ## existing: 59 random out of 500
-        umove_no_109 = 700 ## existing: 109 random out of 700
         
         previous_move = chess.Move.null()  # Ignore repeated broadcasts of a move
         logging.info('msg_queue ready')
@@ -185,43 +454,35 @@ class PicoTalkerDisplay(DisplayMsg, threading.Thread):
                         logging.debug('announcing START_NEW_GAME')
                         self.talk(['newgame.ogg'])
                         self.play_game = None
-                        rand = str(randint(1,30))
-                        talkfile = 'f_newgame' + rand + '.ogg'
-                        self.talk([talkfile]) #molli
-                        rand = str(randint(1,50))
-                        talkfile = 'f_uwhite' + rand + '.ogg'
-                        self.talk([talkfile]) #molli
+                        self.comment('newgame') ##molli
+                        self.comment('uwhite')  ##molli
 
                 elif isinstance(message, Message.COMPUTER_MOVE):
                     if message.move and message.game and message.move != previous_move:
                         logging.debug('announcing COMPUTER_MOVE [%s]', message.move)
                         game_copy = message.game.copy()
                         game_copy.push(message.move)
+                        self.comment('beforemove') ##molli
                         self.talk(self.say_last_move(game_copy), self.COMPUTER)
-                        rand = str(randint(1,cmove_no_78))
-                        talkfile = 'f_cmove' + rand + '.ogg'
-                        self.talk([talkfile]) #molli
+                        self.move_comment() ##molli
+                        self.comment('cmove') ##molli
                         previous_move = message.move
                         self.play_game = game_copy
 
                 elif isinstance(message, Message.COMPUTER_MOVE_DONE):
                     self.play_game = None
-                    rand = str(randint(1,chat_no_74))
-                    talkfile = 'f_chat' + rand + '.ogg'
-                    self.talk([talkfile]) #molli
+                    self.comment('chat') ##molli 20
 
                 elif isinstance(message, Message.USER_MOVE_DONE):
                     if message.move and message.game and message.move != previous_move:
                         logging.debug('announcing USER_MOVE_DONE [%s]', message.move)
+                        self.comment('beforemove') ##molli
                         self.talk(self.say_last_move(message.game), self.USER)
                         previous_move = message.move
                         self.play_game = None
-                        rand = str(randint(1,umove_no_109))
-                        talkfile = 'f_umove' + rand + '.ogg'
-                        self.talk([talkfile]) #molli
-                        rand = str(randint(1,poem_no_59))
-                        talkfile = 'f_poem' + rand + '.ogg'
-                        self.talk([talkfile]) #molli
+                        ##self.move_comment() ##molli
+                        self.comment('umove') ##molli
+                        self.comment('poem') ##molli
 
                 elif isinstance(message, Message.REVIEW_MOVE_DONE):
                     if message.move and message.game and message.move != previous_move:
@@ -229,6 +490,7 @@ class PicoTalkerDisplay(DisplayMsg, threading.Thread):
                         self.talk(self.say_last_move(message.game), self.USER)
                         previous_move = message.move
                         self.play_game = None  # @todo why thats not set in dgtdisplay?
+                        s##elf.move_comment('review') ##molli
 
                 elif isinstance(message, Message.GAME_ENDS):
                     if message.result == GameResult.OUT_OF_TIME:
@@ -237,103 +499,72 @@ class PicoTalkerDisplay(DisplayMsg, threading.Thread):
                         self.talk(['timelost.ogg', wins])
                         if wins == 'whitewins.ogg':
                             if self.play_mode == PlayMode.USER_WHITE:
-                                rand = str(randint(1,19))
-                                talkfile = 'f_uwin' + rand + '.ogg'
+                                self.comment('uwin') ##molli
                             else:
-                                rand = str(randint(1,9))
-                                talkfile = 'f_uloose' + rand + '.ogg'
+                                self.comment('uloose') ##molli
                         else:
                             if self.play_mode == PlayMode.USER_BLACK:
-                                rand = str(randint(1,19))
-                                talkfile = 'f_uwin' + rand + '.ogg'
+                                self.comment('uwin') ##molli
                             else:
-                                rand = str(randint(1,9))
-                                talkfile = 'f_uloose' + rand + '.ogg'
-                        self.talk([talkfile]) #molli
+                                self.comment('uloose') ##molli
                     elif message.result == GameResult.INSUFFICIENT_MATERIAL:
                         logging.debug('announcing GAME_ENDS/INSUFFICIENT_MATERIAL')
                         self.talk(['material.ogg', 'draw.ogg'])
-                        rand = str(randint(1,2))
-                        talkfile = 'f_draw' + rand + '.ogg'
-                        self.talk([talkfile]) #molli
+                        self.comment('draw') ##molli
                     elif message.result == GameResult.MATE:
                         logging.debug('announcing GAME_ENDS/MATE')
-                        ##self.talk(['checkmate.ogg'])
-                        ##wins = 'whitewins.ogg' if message.game.turn == chess.BLACK else 'blackwins.ogg'
-                        ##self.talk([wins]) #molli
-                        rand = str(randint(1,9))
-                        talkfile = 'f_mate' + rand + '.ogg'
-                        self.talk([talkfile]) #molli
+                        self.comment('mate') ##molli
                         if message.game.turn == chess.BLACK:
                             # white wins
                             if self.play_mode == PlayMode.USER_WHITE:
                                 self.talk(['checkmate.ogg'])
                                 self.talk(['whitewins.ogg']) #molli
-                                rand = str(randint(1,19))
-                                talkfile = 'f_uwin' + rand + '.ogg'
+                                self.comment('uwin') ##molli
                             else:
-                                rand = str(randint(1,9))
-                                talkfile = 'f_uloose' + rand + '.ogg'
+                                self.comment('uloose') ##molli
                         else:
                             # black wins
                             if self.play_mode == PlayMode.USER_BLACK:
                                 self.talk(['checkmate.ogg'])
                                 self.talk(['blackwins.ogg']) #molli
-                                rand = str(randint(1,19))
-                                talkfile = 'f_uwin' + rand + '.ogg'
+                                self.comment('uwin') ##molli
                             else:
-                                rand = str(randint(1,9))
-                                talkfile = 'f_uloose' + rand + '.ogg' #molli
-                        self.talk([talkfile]) #molli
+                                self.comment('uloose') ##molli
                     elif message.result == GameResult.STALEMATE:
                         logging.debug('announcing GAME_ENDS/STALEMATE')
                         self.talk(['stalemate.ogg'])
-                        rand = str(randint(1,3))
-                        talkfile = 'f_stalemate' + rand + '.ogg'
-                        self.talk([talkfile]) #molli
+                        self.comment('stalemate') ##molli
                     elif message.result == GameResult.ABORT:
                         logging.debug('announcing GAME_ENDS/ABORT')
                         self.talk(['abort.ogg'])
                     elif message.result == GameResult.DRAW:
                         logging.debug('announcing GAME_ENDS/DRAW')
                         self.talk(['draw.ogg'])
-                        rand = str(randint(1,2))
-                        talkfile = 'f_draw' + rand + '.ogg'
-                        self.talk([talkfile]) #molli
+                        self.comment('draw') ##molli
                     elif message.result == GameResult.WIN_WHITE:
                         logging.debug('announcing GAME_ENDS/WHITE_WIN')
                         self.talk(['whitewins.ogg'])
                         if self.play_mode == PlayMode.USER_WHITE:
-                            rand = str(randint(1,19))
-                            talkfile = 'f_uwin' + rand + '.ogg'
+                            self.comment('uwin') ##molli
                         else:
-                            rand = str(randint(1,9))
-                            talkfile = 'f_uloose' + rand + '.ogg'
-                        self.talk([talkfile]) #molli
+                            self.comment('uloose') ##molli
                     elif message.result == GameResult.WIN_BLACK:
                         logging.debug('announcing GAME_ENDS/BLACK_WIN')
                         self.talk(['blackwins.ogg'])
                         if self.play_mode == PlayMode.USER_BLACK:
-                            rand = str(randint(1,19))
-                            talkfile = 'f_uwin' + rand + '.ogg'
+                            self.comment('uwin') ##molli
                         else:
-                            rand = str(randint(1,9))
-                            talkfile = 'f_uloose' + rand + '.ogg'
-                        self.talk([talkfile]) #molli
+                            self.comment('uloose') ##molli
                     elif message.result == GameResult.FIVEFOLD_REPETITION:
                         logging.debug('announcing GAME_ENDS/FIVEFOLD_REPETITION')
                         self.talk(['repetition.ogg', 'draw.ogg'])
-                        rand = str(randint(1,2))
-                        talkfile = 'f_draw' + rand + '.ogg'
-                        self.talk([talkfile]) #molli
+                        self.comment('draw') ##molli
                 elif isinstance(message, Message.TAKE_BACK):
                     logging.debug('announcing TAKE_BACK')
                     self.talk(['takeback.ogg'])
                     self.play_game = None
                     previous_move = chess.Move.null()
-                    rand = str(randint(1,15))
-                    talkfile = 'f_takeback' + rand + '.ogg'
-                    self.talk([talkfile]) #molli
+                    self.comment('takeback') ##molli
 
                 elif isinstance(message, Message.TIME_CONTROL):
                     logging.debug('announcing TIME_CONTROL')
@@ -364,24 +595,16 @@ class PicoTalkerDisplay(DisplayMsg, threading.Thread):
                     userplay = 'userblack.ogg' if message.play_mode == PlayMode.USER_BLACK else 'userwhite.ogg'
                     self.talk([userplay])
                     if message.play_mode == PlayMode.USER_BLACK:
-                        rand = str(randint(1,12))
-                        talkfile = 'f_ublack' + rand + '.ogg'
-                        self.talk([talkfile]) #molli
+                        self.comment('ublack') ##molli
                     else:
-                        rand = str(randint(1,19))
-                        talkfile = 'f_uwhite' + rand + '.ogg'
-                        self.talk([talkfile]) #molli
+                        self.comment('uwhite') ##molli
 
                 elif isinstance(message, Message.STARTUP_INFO):
                     self.play_mode = message.info['play_mode']
                     logging.debug('announcing PICOCHESS')
                     self.talk(['picoChess.ogg'])
-                    rand = str(randint(1,22))
-                    talkfile = 'f_start' + rand + '.ogg'
-                    self.talk([talkfile]) #molli
-                    rand = str(randint(1,7))
-                    talkfile = 'f_fritz' + rand + '.ogg'
-                    self.talk([talkfile]) #molli
+                    self.comment('start') ##molli
+                    self.comment('name') ##molli
 
                 elif isinstance(message, Message.CLOCK_TIME):
                     self.low_time = message.low_time
@@ -396,13 +619,13 @@ class PicoTalkerDisplay(DisplayMsg, threading.Thread):
                 elif isinstance(message, Message.SYSTEM_SHUTDOWN):
                     logging.debug('announcing SHUTDOWN')
                     self.talk(['goodbye.ogg'])
-                    rand = str(randint(1,8))
-                    talkfile = 'f_shutdown' + rand + '.ogg'
-                    self.talk([talkfile]) #molli
+                    self.comment('shutdown') ##molli
 
                 elif isinstance(message, Message.SYSTEM_REBOOT):
                     logging.debug('announcing REBOOT')
                     self.talk(['pleasewait.ogg'])
+                    self.comment('shutdown') ##molli
+                    wait(3)
 
                 elif isinstance(message, Message.SET_VOICE):
                     self.speed_factor = (90 + (message.speed % 10) * 5) / 100
@@ -413,7 +636,8 @@ class PicoTalkerDisplay(DisplayMsg, threading.Thread):
                         self.set_computer(PicoTalker(localisation_id_voice, self.speed_factor))
                     if message.type == Voice.SPEED:
                         self.set_factor(self.speed_factor)
-
+                    self.talk(['ok.ogg']) ##molli
+        
                 elif isinstance(message, Message.WRONG_FEN):
                     if self.play_game and self.setpieces_voice:
                         self.talk(self.say_last_move(self.play_game), self.COMPUTER)
@@ -426,6 +650,20 @@ class PicoTalkerDisplay(DisplayMsg, threading.Thread):
     @staticmethod
     def say_last_move(game: chess.Board):
         """Take a chess.BitBoard instance and speaks the last move from it."""
+        
+        PicoTalkerDisplay.c_taken     = False #molli
+        PicoTalkerDisplay.c_castle    = False #molli
+        PicoTalkerDisplay.c_knight    = False #molli
+        PicoTalkerDisplay.c_rook      = False #molli
+        PicoTalkerDisplay.c_king      = False #molli
+        PicoTalkerDisplay.c_bishop    = False #molli
+        PicoTalkerDisplay.c_pawn      = False #molli
+        PicoTalkerDisplay.c_queen     = False #molli
+        PicoTalkerDisplay.c_check     = False #molli
+        PicoTalkerDisplay.c_mate      = False #molli
+        PicoTalkerDisplay.c_stalemate = False #molli
+        PicoTalkerDisplay.c_draw      = False #molli
+        
         move_parts = {
             'K': 'king.ogg',
             'B': 'bishop.ogg',
@@ -459,21 +697,13 @@ class PicoTalkerDisplay(DisplayMsg, threading.Thread):
         move = bit_board.pop()
         san_move = bit_board.san(move)
         voice_parts = []
-        taken  = False #molli
-        castle = False #molli
-        knight = False #molli
-        rook   = False #molli
-        king   = False #molli
-        bishop = False #molli
-        pawn   = False #molli
-        queen  = False #molli
 
         if san_move.startswith('O-O-O'):
             voice_parts += ['castlequeenside.ogg']
-            castle = True
+            PicoTalkerDisplay.c_castle = True
         elif san_move.startswith('O-O'):
             voice_parts += ['castlekingside.ogg']
-            castle = True
+            PicoTalkerDisplay.c_castle = True
         else:
             for part in san_move:
                 try:
@@ -484,64 +714,30 @@ class PicoTalkerDisplay(DisplayMsg, threading.Thread):
                 if sound_file:
                     voice_parts += [sound_file]
                     if sound_file   == 'takes.ogg':
-                        taken = True    #molli
+                        PicoTalkerDisplay.c_taken = True    #molli
                     elif sound_file == 'knight.ogg':
-                        knight = True   #molli
+                        PicoTalkerDisplay.c_knight = True   #molli
                     elif sound_file == 'king.ogg':
-                        king = True     #molli
+                        PicoTalkerDisplay. c_king = True    #molli
                     elif sound_file == 'rook.ogg':
-                        rook = True     #molli
+                        PicoTalkerDisplay.c_rook = True     #molli
                     elif sound_file == 'pawn.ogg':
-                        pawn = True     #molli
+                        PicoTalkerDisplay.c_pawn = True     #molli
                     elif sound_file == 'bishop.ogg':
-                        bishop = True   #molli
+                        PicoTalkerDisplay.c_bishop = True   #molli
                     elif sound_file == 'queen.ogg':
-                        queen = True    #molli
-
-        if taken:
-            rand = str(randint(1,130))
-            sound_file = 'f_taken' + rand + '.ogg'
-            voice_parts += [sound_file]   #molli
-        elif bishop:
-            rand = str(randint(1,70))
-            sound_file = 'f_bishop' + rand + '.ogg'
-            voice_parts += [sound_file]   #molli
-        elif queen:
-            rand = str(randint(1,70))
-            sound_file = 'f_queen' + rand + '.ogg'
-            voice_parts += [sound_file]   #molli
-        elif knight:
-            rand = str(randint(1,70))
-            sound_file = 'f_knight' + rand + '.ogg'
-            voice_parts += [sound_file]   #molli
-        elif rook:
-            rand = str(randint(1,70))
-            sound_file = 'f_rook' + rand + '.ogg'
-            voice_parts += [sound_file]   #molli
-        elif king:
-            rand = str(randint(1,70))
-            sound_file = 'f_king' + rand + '.ogg'
-            voice_parts += [sound_file]   #molli
-        elif castle:
-            rand = str(randint(1,70))
-            sound_file = 'f_castle' + rand + '.ogg'
-            voice_parts += [sound_file]   #molli
-        elif pawn:
-            rand = str(randint(1,70))
-            sound_file = 'f_pawn' + rand + '.ogg'
-            voice_parts += [sound_file]   #molli
-        else:
-            rand = str(randint(1,70))
-            sound_file = 'f_pawn' + rand + '.ogg'
-            voice_parts += [sound_file]   #molli
+                        PicoTalkerDisplay.c_queen = True    #molli
 
         if game.is_game_over():
             if game.is_checkmate():
                 wins = 'whitewins.ogg' if game.turn == chess.BLACK else 'blackwins.ogg'
                 voice_parts += ['checkmate.ogg', wins]
+                PicoTalkerDisplay.c_mate = True
             elif game.is_stalemate():
                 voice_parts += ['stalemate.ogg']
+                PicoTalkerDisplay.c_stalemate = True
             else:
+                PicoTalkerDisplay.c_draw = True
                 if game.is_seventyfive_moves():
                     voice_parts += ['75moves.ogg', 'draw.ogg']
                 elif game.is_insufficient_material():
@@ -552,11 +748,9 @@ class PicoTalkerDisplay(DisplayMsg, threading.Thread):
                     voice_parts += ['draw.ogg']
         elif game.is_check():
             voice_parts += ['check.ogg']
-            rand = str(randint(1,30))
-            talkfile = 'f_check' + rand + '.ogg'
-            voice_parts += [talkfile] #molli
+            PicoTalkerDisplay.c_check = True
 
         if bit_board.is_en_passant(move):
             voice_parts += ['enpassant.ogg']
-
+                
         return voice_parts
