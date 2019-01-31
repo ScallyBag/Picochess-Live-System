@@ -103,13 +103,6 @@ class DgtTranslate(object):
             frtxt = entxt
             estxt = entxt
             ittxt = entxt
-        if text_id == 'restoregame':
-            entxt = Dgt.DISPLAY_TEXT(l='read game..', m='readGame', s='r game')
-            detxt = Dgt.DISPLAY_TEXT(l='Letzt Spiel', m='letSpiel', s='lSpiel')
-            nltxt = entxt
-            frtxt = entxt
-            estxt = entxt
-            ittxt = entxt
         if text_id == 'goodbye':
             entxt = Dgt.DISPLAY_TEXT(l='Good bye   ', m='Good bye', s='bye   ')
             detxt = Dgt.DISPLAY_TEXT(l='Tschuess   ', m='Tschuess', s='tschau')
@@ -456,36 +449,36 @@ class DgtTranslate(object):
             estxt = Dgt.DISPLAY_TEXT(l='Normal     ', m='Normal  ', s='normal')
             ittxt = Dgt.DISPLAY_TEXT(l='Normale    ', m='Normale ', s='normal')
         if text_id == 'mode_training_menu': # WD
-            entxt = Dgt.DISPLAY_TEXT(l='Training   ', m='Training', s='train') # WD
-            detxt = Dgt.DISPLAY_TEXT(l='Training   ', m='Training', s='train') # WD
+            entxt = Dgt.DISPLAY_TEXT(l='Training   ', m='Training', s='School') # WD
+            detxt = Dgt.DISPLAY_TEXT(l='Training   ', m='Training', s='Schule') # WD
             nltxt = entxt # WD
             frtxt = entxt # WD
             estxt = entxt # WD
             ittxt = entxt # WD
         if text_id == 'mode_brain_menu':
-            entxt = Dgt.DISPLAY_TEXT(l='Ponder on  ', m='PonderOn', s='ponder')
-            detxt = Dgt.DISPLAY_TEXT(l='Ponder an  ', m='PonderAn', s='ponder')
+            entxt = Dgt.DISPLAY_TEXT(l='Brain      ', m='Brain   ', s='brain ')
+            detxt = entxt
             nltxt = entxt
             frtxt = entxt
             estxt = entxt
             ittxt = entxt
         if text_id == 'mode_analysis_menu':
-            entxt = Dgt.DISPLAY_TEXT(l='Move hint  ', m='MoveHint', s='mvhint')
-            detxt = Dgt.DISPLAY_TEXT(l='Zughinweis ', m='ZugVor. ', s='zugvor')
-            nltxt = entxt
-            frtxt = entxt
-            estxt = entxt
-            ittxt = entxt
+            entxt = Dgt.DISPLAY_TEXT(l='Analysis   ', m='Analysis', s='analys')
+            detxt = Dgt.DISPLAY_TEXT(l='Analyse    ', m='Analyse ', s='analys')
+            nltxt = Dgt.DISPLAY_TEXT(l='Analyseren ', m='Analyse ', s='analys')
+            frtxt = Dgt.DISPLAY_TEXT(l='Analyser   ', m='Analyser', s='analys')
+            estxt = Dgt.DISPLAY_TEXT(l='Analisis   ', m='Analisis', s='analis')
+            ittxt = Dgt.DISPLAY_TEXT(l='Analisi    ', m='Analisi ', s='Analis')
         if text_id == 'mode_kibitz_menu':
-            entxt = Dgt.DISPLAY_TEXT(l='Eval.Score ', m='Score   ', s='score')
-            detxt = Dgt.DISPLAY_TEXT(l='Bewertung  ', m='Bewert. ', s='bewert')
-            nltxt = entxt
+            entxt = Dgt.DISPLAY_TEXT(l='Kibitz     ', m='Kibitz  ', s='kibitz')
+            detxt = Dgt.DISPLAY_TEXT(l='Kibitz     ', m='Kibitz  ', s='kibitz')
+            nltxt = Dgt.DISPLAY_TEXT(l='Kibitz     ', m='Kibitz  ', s='kibitz')
             frtxt = Dgt.DISPLAY_TEXT(l='Evaluer    ', m='Evaluer ', s='evalue')
-            estxt = entxt
-            ittxt = entxt
+            estxt = Dgt.DISPLAY_TEXT(l='Kibitz     ', m='Kibitz  ', s='kibitz')
+            ittxt = Dgt.DISPLAY_TEXT(l='Kibitz     ', m='Kibitz  ', s='kibitz')
         if text_id == 'mode_observe_menu':
             entxt = Dgt.DISPLAY_TEXT(l='Observe    ', m='Observe ', s='observ')
-            detxt = Dgt.DISPLAY_TEXT(l='Beobachten ', m='Beobacht', s='beob. ')
+            detxt = Dgt.DISPLAY_TEXT(l='Observe    ', m='Observe ', s='observ')
             nltxt = Dgt.DISPLAY_TEXT(l='Observeren ', m='Observr ', s='observ')
             frtxt = Dgt.DISPLAY_TEXT(l='Observer   ', m='Observer', s='observ')
             estxt = Dgt.DISPLAY_TEXT(l='Observa    ', m='Observa ', s='observ')
@@ -498,12 +491,12 @@ class DgtTranslate(object):
             estxt = Dgt.DISPLAY_TEXT(l='Remoto     ', m='Remoto  ', s='remoto')
             ittxt = Dgt.DISPLAY_TEXT(l='Remoto     ', m='Remoto  ', s='remoto')
         if text_id == 'mode_ponder_menu':
-            entxt = Dgt.DISPLAY_TEXT(l='Analysis   ', m='Analysis', s='analys')
-            detxt = Dgt.DISPLAY_TEXT(l='Analyse    ', m='Analyse ', s='analys')
-            nltxt = Dgt.DISPLAY_TEXT(l='Analyseren ', m='Analyse ', s='analys')
-            frtxt = Dgt.DISPLAY_TEXT(l='Analyser   ', m='Analyser', s='analys')
-            estxt = Dgt.DISPLAY_TEXT(l='Analisis   ', m='Analisis', s='analis')
-            ittxt = Dgt.DISPLAY_TEXT(l='Analisi    ', m='Analisi ', s='Analis')
+            entxt = Dgt.DISPLAY_TEXT(l='Ponder     ', m='Ponder  ', s='ponder')
+            detxt = entxt
+            nltxt = entxt
+            frtxt = entxt
+            estxt = entxt
+            ittxt = entxt
         if text_id == 'timemode_fixed_menu':
             entxt = Dgt.DISPLAY_TEXT(l='Move time  ', m='Movetime', s='move t')
             detxt = Dgt.DISPLAY_TEXT(l='Zugzeit    ', m='Zugzeit ', s='zug z ')

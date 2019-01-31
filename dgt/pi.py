@@ -89,7 +89,7 @@ class DgtPi(DgtIface):
                     if ack3 == 0x20:
                         logging.info('(i2c) clock button on/off pressed')
                         self.lib.dgtpicom_configure()  # restart the clock - cause its OFF
-                        DisplayMsg.show(Message.DGT_BUTTON(button=0x11, dev='i2c'))
+                        DisplayMsg.show(Message.DGT_BUTTON(button=0x20, dev='i2c')) # WD Fehlerbereinigung
                     if ack3 == 0x11:
                         logging.info('(i2c) clock button 0+4 pressed')
                         DisplayMsg.show(Message.DGT_BUTTON(button=0x11, dev='i2c'))

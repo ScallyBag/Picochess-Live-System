@@ -97,10 +97,18 @@ class DgtMenu(object):
 
     def __init__(self, disable_confirm: bool, ponder_interval: int,
                  user_voice: str, comp_voice: str, speed_voice: int, enable_capital_letters: bool,
-                 disable_short_move: bool, log_file, engine_server, dgttranslate: DgtTranslate):
+                 disable_short_move: bool, log_file, engine_server, rol_disp_norm: bool,
+                 rol_disp_brain: bool, dgttranslate: DgtTranslate):
         super(DgtMenu, self).__init__()
 
         self.current_text = None  # save the current text
+        
+        ## molli
+        logging.debug('molli: roll.norm %s', str(rol_disp_norm))
+        logging.debug('molli: roll.brain %s', str(rol_disp_brain))
+        self.menu_system_display_rolldispnorm  = rol_disp_norm
+        self.menu_system_display_rolldispbrain = rol_disp_brain
+        
         self.menu_system_display_confirm = disable_confirm
         self.menu_system_display_ponderinterval = ponder_interval
         self.menu_system_display_capital = enable_capital_letters
@@ -253,6 +261,10 @@ class DgtMenu(object):
 
         self.res_system_display_confirm = self.menu_system_display_confirm
         self.res_system_display_ponderinterval = self.menu_system_display_ponderinterval
+        ## molli
+        self.res_system_display_rolldispnorm  = self.menu_system_display_rolldispnorm
+        self.res_system_display_rolldispbrain = self.menu_system_display_rolldispbrain
+        
         self.dgttranslate.set_capital(self.menu_system_display_capital)
         self.dgttranslate.set_notation(self.menu_system_display_notation)
         return False
@@ -364,6 +376,15 @@ class DgtMenu(object):
     def get_ponderinterval(self):
         """Get the flag."""
         return self.res_system_display_ponderinterval
+    
+    ## molli:
+    def get_rolldispnorm(self):
+        """Get the flag."""
+        return self.res_system_display_rolldispnorm
+
+    def get_rolldispbrain(self):
+        """Get the flag."""
+        return self.res_system_display_rolldispbrain
 
     def get(self):
         """Get the current state."""

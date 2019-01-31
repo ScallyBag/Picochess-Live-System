@@ -140,6 +140,7 @@ class MessageApi():
     WRONG_FEN = 'MSG_WRONG_FEN'  # User sends a wrong placement of pieces (timed)
     BATTERY = 'MSG_BATTERY'  # percent of BT battery
     UPDATE_PICO = 'MSG_UPDATE'  # User wants to update picochess
+    RESTORE_GAME = 'MSG_RESTORE_GAME' ## molli
     REMOTE_ROOM = 'MSG_REMOTE_ROOM'  # User enters/leaves a remote room
 
 
@@ -234,6 +235,7 @@ class Message():
     BATTERY = ClassFactory(MessageApi.BATTERY, ['percent'])
     UPDATE_PICO = ClassFactory(MessageApi.UPDATE_PICO, [])
     REMOTE_ROOM = ClassFactory(MessageApi.REMOTE_ROOM, ['inside'])
+    RESTORE_GAME = ClassFactory(MessageApi.RESTORE_GAME, []) ## molli
 
 
 class Event():

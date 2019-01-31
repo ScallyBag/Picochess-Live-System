@@ -90,6 +90,7 @@ class Mode(MyEnum):
     """Mode Class."""
 
     NORMAL = 'B00_mode_normal_menu'
+    TRAINING = 'B00_mode_training_menu' # WD
     BRAIN = 'B00_mode_brain_menu'
     ANALYSIS = 'B00_mode_analysis_menu'
     KIBITZ = 'B00_mode_kibitz_menu'
@@ -110,7 +111,7 @@ class ModeLoop(object):
         """Get next item."""
         if item == Mode.NORMAL:
             return Mode.BRAIN
-        if item == Mode.BRAIN:
+        elif item == Mode.BRAIN:
             return Mode.ANALYSIS
         elif item == Mode.ANALYSIS:
             return Mode.KIBITZ
@@ -119,6 +120,8 @@ class ModeLoop(object):
         elif item == Mode.OBSERVE:
             return Mode.PONDER
         elif item == Mode.PONDER:
+            return Mode.TRAINING # WD
+        elif item == Mode.TRAINING: # WD
             return Mode.REMOTE
         elif item == Mode.REMOTE:
             return Mode.NORMAL
@@ -129,7 +132,7 @@ class ModeLoop(object):
         """Get previous item."""
         if item == Mode.NORMAL:
             return Mode.REMOTE
-        if item == Mode.BRAIN:
+        elif item == Mode.BRAIN:
             return Mode.NORMAL
         elif item == Mode.ANALYSIS:
             return Mode.BRAIN
@@ -139,10 +142,11 @@ class ModeLoop(object):
             return Mode.KIBITZ
         elif item == Mode.PONDER:
             return Mode.OBSERVE
-        elif item == Mode.REMOTE:
+        elif item == Mode.TRAINING: # WD
             return Mode.PONDER
+        elif item == Mode.REMOTE:
+            return Mode.TRAINING # WD
         return 'errModePrev'
-
 
 @enum.unique
 class PlayMode(MyEnum):
