@@ -51,6 +51,7 @@ Files to be replaced in…
 - picochess.ini  (just adjust your own one and add the new lines at the end of the default picochess.ini.example_v2 )
 - utilities.py
 - timecontrol.py
+- pgn.py
 
 … /opt/picochess/dgt:
 - display.py
