@@ -397,7 +397,7 @@ class WebDisplay(DisplayMsg, threading.Thread):
 
         if 'game_info' in self.shared:
             if 'level_text' in self.shared['game_info']:
-                engine_level = ' ({0})'.format(self.shared['game_info']['level_text'].m)
+                engine_level = ' ({0})'.format(self.shared['game_info']['level_text'].l)
             else:
                 engine_level = ''
             if 'level_name' in self.shared['game_info']:
