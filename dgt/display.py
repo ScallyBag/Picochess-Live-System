@@ -726,10 +726,16 @@ class DgtDisplay(DisplayMsg, threading.Thread):
                         text.wait = True
                         self.c_time_counter = (self.c_time_counter + 1) % (self.dgtmenu.get_ponderinterval() * 3)
                         DispatchDgt.fire(text)
+                        if self.c_time_counter == 2 * self.dgtmenu.get_ponderinterval():
+                            time.sleep(0.3)
                     else:
                         ## molli:  standard clock display
+                        if self.c_time_counter == 0:
+                            time.sleep(0.3)
                         self.c_time_counter = (self.c_time_counter + 1) % (self.dgtmenu.get_ponderinterval() * 3)
                         self._exit_display()
+                        if self.c_time_counter == self.dgtmenu.get_ponderinterval():
+                            time.sleep(0.3)
 
     def _drawresign(self):
         _, _, _, rnk_5, rnk_4, _, _, _ = self.dgtmenu.get_dgt_fen().split('/')
@@ -965,7 +971,19 @@ class DgtDisplay(DisplayMsg, threading.Thread):
         
         elif isinstance(message, Message.RESTORE_GAME):
             DispatchDgt.fire(self.dgttranslate.text('C10_restoregame')) ## molli
-            
+        
+        elif isinstance(message, Message.SEEKING):
+            DispatchDgt.fire(self.dgttranslate.text('C10_seeking')) ## molli
+        
+        elif isinstance(message, Message.ONLINE_NAMES):
+            logging.debug('molli: user online name %s', message.own_user)
+            logging.debug('molli: opponent online name %s', message.opp_user)
+            DispatchDgt.fire(self.dgttranslate.text('C10_onlineuser', message.opp_user)) ## molli
+            ##DispatchDgt.fire(Dgt.DISPLAY_TIME(force=True, wait=True, devs={'ser', 'i2c', 'web'}))
+        
+        elif isinstance(message, Message.ONLINE_LOGIN):
+            DispatchDgt.fire(self.dgttranslate.text('C10_login')) ## molli
+        
         else:  # Default
             pass
 
