@@ -183,7 +183,7 @@ class PgnDisplay(DisplayMsg, threading.Thread):
         if self.level_text is None:
             engine_level = ''
         else:
-            engine_level = ' ({})'.format(self.level_text.m)
+            engine_level = ' ({})'.format(self.level_text.l)
 
         if self.level_name.startswith('Elo@'):
             comp_elo = int(self.level_name[4:])
