@@ -52,6 +52,7 @@ Files to be replaced in…
 - utilities.py
 - timecontrol.py
 - pgn.py
+- server.py
 
 … /opt/picochess/dgt:
 - display.py
