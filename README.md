@@ -60,6 +60,7 @@ Files to be replaced in…
 - translate.py
 - translate_old.py (use this one instead of translate.py if you want to keep the old mode names)
 - util.py
+- api.py
 
 … /opt/picochess/talker:
 - picotalker.py
