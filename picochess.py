@@ -642,7 +642,7 @@ def main():
             last_legal_fens = []
 
         # molli: Premove/fast move: Player has done the computer move and his own move in rapid sequence
-        elif fen in legal_fens_after_cmove and flag_premove and interaction_mode in (Mode.NORMAL, Mode.BRAIN):
+        elif fen in legal_fens_after_cmove and flag_premove and interaction_mode in (Mode.NORMAL, Mode.BRAIN, Mode.TRAINING):
             logging.info('standard move after computer move detected')
             # time_control.add_inc(game.turn)  # deactivated and moved to user_move() cause tc still running :-(
             # molli: execute computer move first
@@ -663,7 +663,7 @@ def main():
             move = legal_moves[legal_fens.index(fen)]  # type: chess.Move
             user_move(move, sliding=False)
             last_legal_fens = legal_fens
-            if interaction_mode in (Mode.NORMAL, Mode.BRAIN, Mode.REMOTE):
+            if interaction_mode in (Mode.NORMAL, Mode.BRAIN, Mode.REMOTE, Mode.TRAINING):
                 legal_fens = []
             else:
                 legal_fens = compute_legal_fens(game.copy())
@@ -1183,9 +1183,14 @@ def main():
                         engine.option('UCI_Chess960', uci960)
                         engine.send()
                     
+                    if interaction_mode == Mode.TRAINING: # Test WD
+                        logging.warning('engine not already waiting for newgame (NewGame 1) ------')
+                        engine.stop()
+
                     engine.newgame(game.copy())
-                    if interaction_mode == Mode.TRAINING:
-                        time.sleep(3) ## molli: avoid freezes
+
+                    if interaction_mode == Mode.TRAINING: # Test WD
+                        logging.warning('engine not already waiting for newgame (NewGame 2) ------')
                     
                     done_computer_fen = None
                     done_move = pb_move = chess.Move.null()
