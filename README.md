@@ -1,7 +1,7 @@
 PicoChess
 =========
 
-Picochess 2.0 (personal edition) 
+Picochess 2.01 (personal edition) 
 --------------------------------
 Picochess V 0.9N with the following changes/enhancements: 
 
