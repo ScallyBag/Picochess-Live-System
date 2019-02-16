@@ -195,8 +195,10 @@ def main():
                 logging.debug('molli: turn from last game %s number of moves %s', str(turn))
               
                 stop_search_and_clock()
+                if interaction_mode == Mode.TRAINING: # and not engine.is_waiting(): # Test WD
+                    logging.warning('engine not already waiting for newgame (error_fen) ------')
                 engine.newgame(game.copy())
-                time.sleep(2) ## molli avoid freezes
+#                time.sleep(2) ## molli avoid freezes
                 done_computer_fen = None
                 done_move = pb_move = chess.Move.null()
                 time_control.reset()
@@ -246,7 +248,7 @@ def main():
                     game = chess.Board(bit_board.fen())
                     stop_search_and_clock()
                     engine.newgame(game.copy())
-                    time.sleep(2) ## molli avoid freezes
+#                    time.sleep(2) ## molli avoid freezes
                     done_computer_fen = None
                     done_move = pb_move = chess.Move.null()
                     time_control.reset()
@@ -269,7 +271,7 @@ def main():
                         game = chess.Board(bit_board.fen())
                         stop_search_and_clock()
                         engine.newgame(game.copy())
-                        time.sleep(2) ## molli avoid freezes
+#                        time.sleep(2) ## molli avoid freezes
                         done_computer_fen = None
                         done_move = pb_move = chess.Move.null()
                         time_control.reset()
@@ -646,6 +648,8 @@ def main():
             logging.info('standard move after computer move detected')
             # time_control.add_inc(game.turn)  # deactivated and moved to user_move() cause tc still running :-(
             # molli: execute computer move first
+            logging.warning('TEST 1')
+
             game.push(done_move)
             done_computer_fen = None
             done_move = chess.Move.null()
@@ -667,6 +671,8 @@ def main():
                 legal_fens = []
             else:
                 legal_fens = compute_legal_fens(game.copy())
+            logging.warning('TEST 2')
+
 
         # Check if this is a previous legal position and allow user to restart from this position
         else:
@@ -839,6 +845,8 @@ def main():
     parser.add_argument('-cv', '--computer-voice', type=str, help='voice for computer', default=None)
     parser.add_argument('-sv', '--speed-voice', type=int, help='voice speech factor from 0(=90%%) to 9(=135%%)',
                         default=2, choices=range(0, 10))
+    parser.add_argument('-vv', '--volume-voice', type=int, help='voice volume factor from 0(=50%%) to 10(=100%%)',
+                        default=10, choices=range(0, 11)) #WD
 
     parser.add_argument('-sp', '--enable-setpieces-voice', action='store_true',
                         help="speak last computer move again when 'set pieces' displayed")
@@ -899,6 +907,7 @@ def main():
     dgtmenu = DgtMenu(args.disable_confirm_message, args.ponder_interval,
                       args.user_voice, args.computer_voice, args.speed_voice, args.enable_capital_letters,
                       args.disable_short_notation, args.log_file, args.engine_remote_server, args.rolling_display_normal,
+                      args.volume_voice, #WD
                       args.rolling_display_ponder, dgttranslate) ## molli
     dgtdispatcher = Dispatcher(dgtmenu)
 
@@ -912,6 +921,12 @@ def main():
     logging.debug('molli: probability factor for game comments args.comment_factor %s', args.comment_factor)
     PicoTalkerDisplay(args.user_voice, args.computer_voice, args.speed_voice, args.enable_setpieces_voice, args.comment_factor).start()
 
+    # Setting the volume for the speech output according to the specifications from the picochess.ini
+    #WD
+    volume_factor = int(args.volume_voice)
+    if volume_factor > 10:
+        volume_factor = 10
+    dgtmenu.set_volume_voice(volume_factor)
 
     # Launch web server
     if args.web_server_port:
@@ -1008,8 +1023,11 @@ def main():
     args.engine_level = None if args.engine_level == 'None' else args.engine_level
     engine_opt, level_index = get_engine_level_dict(args.engine_level)
     engine.startup(engine_opt)
+    if interaction_mode == Mode.TRAINING and not engine.is_waiting(): # Test WD
+        logging.warning('engine not already waiting for newgame (Startup) ------')
+
     engine.newgame(game.copy())
-    time.sleep(2) ## molli avoid freezes
+#    time.sleep(2) ## molli avoid freezes
 
     # Startup - external
     level_name = args.engine_level
@@ -1102,6 +1120,13 @@ def main():
 
                     engine.startup(event.options)
                     stop_search_and_clock()  ##molli avoid freezes
+                    if interaction_mode == Mode.TRAINING: # Test WD
+                        if engine.is_waiting():
+                            logging.warning('engine already waiting for newgame (Event.New_Engine) ++++++')
+                        else:
+#                            time.sleep(3)
+                            logging.warning('engine not already waiting for newgame (Event.New_Engine) ------')
+
                     engine.newgame(game.copy())
 
                     # All done - rock'n'roll
@@ -1164,6 +1189,7 @@ def main():
             elif isinstance(event, Event.NEW_GAME):
                 newgame = game.move_stack or (game.chess960_pos() != event.pos960)
                 if newgame:
+                    flag_startup = False
                     logging.debug('starting a new game with code: %s', event.pos960)
                     uci960 = event.pos960 != 518
 
@@ -1182,15 +1208,19 @@ def main():
                     if engine.has_chess960():
                         engine.option('UCI_Chess960', uci960)
                         engine.send()
-                    
+
                     if interaction_mode == Mode.TRAINING: # Test WD
                         logging.warning('engine not already waiting for newgame (NewGame 1) ------')
                         engine.stop()
-
+                   
                     engine.newgame(game.copy())
 
                     if interaction_mode == Mode.TRAINING: # Test WD
                         logging.warning('engine not already waiting for newgame (NewGame 2) ------')
+
+
+#                    if interaction_mode == Mode.TRAINING:
+#                        time.sleep(3) ## molli: avoid freezes
                     
                     done_computer_fen = None
                     done_move = pb_move = chess.Move.null()
@@ -1234,6 +1264,7 @@ def main():
                         logging.warning('wrong function call [alternative]! mode: %s', interaction_mode)
 
             elif isinstance(event, Event.SWITCH_SIDES):
+                flag_startup = False
                 if interaction_mode == Mode.PONDER:
                     ## molli: allow switching sides in flexble ponder mode
                     fen = game.board_fen()
@@ -1248,8 +1279,15 @@ def main():
                     if bit_board.is_valid():
                         game = chess.Board(bit_board.fen())
                         stop_search_and_clock()
+                        if interaction_mode == Mode.TRAINING: # Test WD
+                            if engine.is_waiting():
+                                logging.warning('engine already waiting for newgame (Event.Switch_Sides) ++++++')
+                            else:
+#                                time.sleep(3)
+                                logging.warning('engine not already waiting for newgame (Event.Switch_Sides) ------')
+                        
                         engine.newgame(game.copy())
-                        time.sleep(2) ## molli avoid freezes
+#                        time.sleep(2) ## molli avoid freezes
                         done_computer_fen = None
                         done_move = pb_move = chess.Move.null()
                         time_control.reset()
@@ -1357,6 +1395,7 @@ def main():
                     legal_fens_after_cmove = [] # molli
 
             elif isinstance(event, Event.REMOTE_MOVE):
+                flag_startup = False
                 if interaction_mode == Mode.REMOTE and is_not_user_turn(game.turn):
                     stop_search_and_clock()
                     DisplayMsg.show(Message.COMPUTER_MOVE(move=event.move, ponder=chess.Move.null(), game=game.copy(),
@@ -1371,6 +1410,7 @@ def main():
                     logging.warning('wrong function call [remote]! mode: %s turn: %s', interaction_mode, game.turn)
 
             elif isinstance(event, Event.BEST_MOVE):
+                flag_startup = False
                 if interaction_mode in (Mode.NORMAL, Mode.BRAIN, Mode.TRAINING): # WD
                     if is_not_user_turn(game.turn):                                     # 01.10.2018 um die Fehlermeldung zu vermeiden getrennt
                         # clock must be stopped BEFORE the "book_move" event cause SetNRun resets the clock display
