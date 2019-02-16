@@ -30,7 +30,7 @@
 #            Makes analysis and playing differenet variants much easier
 #        5.  Remote mode working again (without room handling, see menue.py)
 #-------------------------------------------------------------------------------------------
-#        6.  Version set to 2.0 ;-)
+#        6.  Version set to 2.0
 #        7.  Framework for adding (more or less funny) speech comments based on
 #            various events
 #        8.  Rolling display of time/score/depth/hintmove in Ponder On or Normal Mode
@@ -51,6 +51,8 @@
 #            f5 ANALYSIS (flexible option on by default)           PONDER
 #            g5 TRAINING (this is new in 2.00)                       -
 #            h5 REMOTE (working again from 1.00 on)                REMOTE
+#        14. Version set to 2.01
+#        15. Added possibility to change voice volume via menu and picochess.ini
 ############################################################################################
 
 import sys
