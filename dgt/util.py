@@ -90,7 +90,7 @@ class Mode(MyEnum):
     """Mode Class."""
 
     NORMAL = 'B00_mode_normal_menu'
-    TRAINING = 'B00_mode_training_menu' # WD
+    TRAINING = 'B00_mode_training_menu'
     BRAIN = 'B00_mode_brain_menu'
     ANALYSIS = 'B00_mode_analysis_menu'
     KIBITZ = 'B00_mode_kibitz_menu'
@@ -120,8 +120,8 @@ class ModeLoop(object):
         elif item == Mode.OBSERVE:
             return Mode.PONDER
         elif item == Mode.PONDER:
-            return Mode.TRAINING # WD
-        elif item == Mode.TRAINING: # WD
+            return Mode.TRAINING 
+        elif item == Mode.TRAINING: 
             return Mode.REMOTE
         elif item == Mode.REMOTE:
             return Mode.NORMAL
@@ -142,10 +142,10 @@ class ModeLoop(object):
             return Mode.KIBITZ
         elif item == Mode.PONDER:
             return Mode.OBSERVE
-        elif item == Mode.TRAINING: # WD
+        elif item == Mode.TRAINING: 
             return Mode.PONDER
         elif item == Mode.REMOTE:
-            return Mode.TRAINING # WD
+            return Mode.TRAINING 
         return 'errModePrev'
 
 @enum.unique
@@ -388,7 +388,8 @@ class Voice(MyEnum):
     SPEED = 'B00_voice_speed_menu'
     USER = 'B00_voice_user_menu'
     COMP = 'B00_voice_comp_menu'
-
+    VOLUME = 'B00_voice_volume_menu' #WD
+    
 
 class VoiceLoop(object):
 
@@ -405,6 +406,8 @@ class VoiceLoop(object):
         elif item == Voice.COMP:
             return Voice.USER
         elif item == Voice.USER:
+            return Voice.VOLUME #WD
+        elif item == Voice.VOLUME: #WD
             return Voice.SPEED
         return 'errVoicNext'
 
@@ -412,6 +415,8 @@ class VoiceLoop(object):
     def prev(item: Voice):
         """Get previous item."""
         if item == Voice.SPEED:
+            return Voice.VOLUME #WD
+        elif item == Voice.VOLUME: #WD
             return Voice.USER
         elif item == Voice.USER:
             return Voice.COMP

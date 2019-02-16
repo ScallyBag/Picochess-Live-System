@@ -782,6 +782,27 @@ class DgtTranslate(object):
             frtxt = entxt
             estxt = entxt
             ittxt = entxt
+        if text_id == 'voice_volume_menu': #WD
+            entxt = Dgt.DISPLAY_TEXT(l='VoiceVolume', m='VoiceVol', s='voivol')
+            detxt = Dgt.DISPLAY_TEXT(l='Lautstaerke', m='Lautstr ', s='lautst')
+            nltxt = entxt
+            frtxt = entxt
+            estxt = entxt
+            ittxt = entxt
+        if text_id == 'voice_volume': #WD
+            entxt = Dgt.DISPLAY_TEXT(l='VoiceVol ' + msg, m='Volume' + msg, s='vol ' + msg)
+            detxt = Dgt.DISPLAY_TEXT(l='Volume   ' + msg, m='Volume' + msg, s='vol ' + msg)
+            nltxt = entxt 
+            frtxt = entxt
+            estxt = entxt
+            ittxt = entxt
+        if text_id == 'okvolume': #WD
+            entxt = Dgt.DISPLAY_TEXT(l='ok volume  ', m='ok vol  ', s='ok vol')
+            detxt = Dgt.DISPLAY_TEXT(l='ok Volume  ', m='ok vol  ', s='ok vol')
+            nltxt = entxt
+            frtxt = entxt
+            estxt = entxt
+            ittxt = entxt
         if text_id == 'voice_user_menu':
             entxt = Dgt.DISPLAY_TEXT(l='User voice ', m='UserVoic', s='user v')
             detxt = Dgt.DISPLAY_TEXT(l='Spieler Stm', m='Splr Stm', s='splr s')
@@ -818,6 +839,20 @@ class DgtTranslate(object):
             frtxt = Dgt.DISPLAY_TEXT(l='Voix eteint', m='Voix ete', s='vo ete')
             estxt = Dgt.DISPLAY_TEXT(l='Voz apagada', m='Voz apag', s='vz apa')
             ittxt = Dgt.DISPLAY_TEXT(l='Voce spenta', m='Voce spe', s='vc spe')
+        if text_id == 'okvolume': #WD
+            entxt = Dgt.DISPLAY_TEXT(l='ok Volume  ', m='okVolume', s='ok vol')
+            detxt = Dgt.DISPLAY_TEXT(l='ok Lautst  ', m='okLautst', s='ok Lau')
+            nltxt = entxt
+            frtxt = entxt
+            estxt = entxt
+            ittxt = entxt
+        if text_id == 'voice_volume_menu': #WD
+            entxt = Dgt.DISPLAY_TEXT(l='VoiceVolume', m='Vc vol ', s='vc vo')
+            detxt = Dgt.DISPLAY_TEXT(l='Lautstrarke', m='Lautstr ', s='laut')
+            nltxt = entxt
+            frtxt = entxt
+            estxt = entxt
+            ittxt = entxt            
         if text_id == 'display_ponder_menu':
             entxt = Dgt.DISPLAY_TEXT(l='Ponder intv', m='PondIntv', s='ponint')
             detxt = entxt

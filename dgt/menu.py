@@ -80,6 +80,8 @@ class MenuState(object):
     SYS_VOICE_COMP_MUTE_LANG_SPEAK = 752111  # al, christina, ...
     SYS_VOICE_SPEED = 753000  # vspeed
     SYS_VOICE_SPEED_FACTOR = 753100  # 0-7
+    SYS_VOICE_VOLUME = 754000 #WD
+    SYS_VOICE_VOLUME_FACTOR = 754100 #WD
     SYS_DISP = 760000
     SYS_DISP_CONFIRM = 761000
     SYS_DISP_CONFIRM_YESNO = 761100  # yes,no
@@ -97,7 +99,8 @@ class DgtMenu(object):
 
     def __init__(self, disable_confirm: bool, ponder_interval: int,
                  user_voice: str, comp_voice: str, speed_voice: int, enable_capital_letters: bool,
-                 disable_short_move: bool, log_file, engine_server, rol_disp_norm: bool,
+                 disable_short_move: bool, log_file, engine_server, rol_disp_norm: bool, 
+                 volume_voice: int, #WD
                  rol_disp_brain: bool, dgttranslate: DgtTranslate):
         super(DgtMenu, self).__init__()
 
@@ -165,8 +168,9 @@ class DgtMenu(object):
         except (AttributeError, ValueError):  # None = "not set" throws an AttributeError
             self.menu_system_voice_comp_lang = 0
             self.menu_system_voice_comp_speak = 0
-
+            
         self.menu_system_voice_speedfactor = speed_voice
+        self.menu_system_voice_volumefactor = volume_voice #WD
 
         self.menu_system_display = Display.PONDER
         self.menu_system_info = Info.VERSION
@@ -666,6 +670,24 @@ class DgtMenu(object):
         self.state = MenuState.SYS_VOICE_SPEED_FACTOR
         text = self.dgttranslate.text('B00_voice_speed', str(self.menu_system_voice_speedfactor))
         return text
+    
+    def enter_sys_voice_volume_menu(self): #WD
+        """Set the menu state."""
+        self.state = MenuState.SYS_VOICE_VOLUME
+        text = self.dgttranslate.text(Voice.VOLUME.value)
+        return text
+    
+    def enter_sys_voice_volume_factor_menu(self): #WD
+        """Set the menu state."""
+        self.state = MenuState.SYS_VOICE_VOLUME_FACTOR
+        text = self.dgttranslate.text('B00_voice_volume', str(self.menu_system_voice_volumefactor))
+        return text
+    
+    def set_volume_voice(self, volume_factor): #WD
+        """ Set the Volume-Voice."""
+        logging.debug('amixer sset PCM ' + str(volume_factor * 5 + 50) + '%')
+        os.system('amixer sset PCM ' + str(volume_factor * 5 + 50) + '%')
+        return        
 
     def enter_sys_disp_menu(self):
         """Set the menu state."""
@@ -871,7 +893,13 @@ class DgtMenu(object):
 
         elif self.state == MenuState.SYS_VOICE_SPEED_FACTOR:
             text = self.enter_sys_voice_speed_menu()
+            
+        elif self.state == MenuState.SYS_VOICE_VOLUME: #WD
+            text = self.enter_sys_voice_menu()
 
+        elif self.state == MenuState.SYS_VOICE_VOLUME_FACTOR: #WD
+            text = self.enter_sys_voice_volume_menu()
+            
         elif self.state == MenuState.SYS_DISP:
             text = self.enter_sys_menu()
 
@@ -1129,6 +1157,8 @@ class DgtMenu(object):
                 text = self.enter_sys_voice_comp_menu()
             if self.menu_system_voice == Voice.SPEED:
                 text = self.enter_sys_voice_speed_menu()
+            if self.menu_system_voice == Voice.VOLUME: #WD
+                text = self.enter_sys_voice_volume_menu()
 
         elif self.state == MenuState.SYS_VOICE_USER:
             self.menu_system_voice = Voice.USER
@@ -1208,6 +1238,20 @@ class DgtMenu(object):
                                     speed=self.menu_system_voice_speedfactor)
             Observable.fire(event)
             text = self._fire_dispatchdgt(self.dgttranslate.text('B10_okspeed'))
+            
+        elif self.state == MenuState.SYS_VOICE_VOLUME: #WD
+            self.menu_system_voice = Voice.VOLUME
+            text = self.enter_sys_voice_volume_factor_menu()
+
+        elif self.state == MenuState.SYS_VOICE_VOLUME_FACTOR: #WD
+            # do action!
+            assert self.menu_system_voice == Voice.VOLUME, 'menu item is not Voice.VOLUME: %s' % self.menu_system_voice
+            write_picochess_ini('volume-voice', str(self.menu_system_voice_volumefactor))
+            text = self.set_volume_voice(self.menu_system_voice_volumefactor)
+            event = Event.SET_VOICE(type=self.menu_system_voice, lang='en', speaker='mute',     # WD00
+                                    speed=self.menu_system_voice_speedfactor)                   # WD00
+            Observable.fire(event) 
+            text = self._fire_dispatchdgt(self.dgttranslate.text('B10_okvolume'))
 
         elif self.state == MenuState.SYS_DISP:
             if self.menu_system_display == Display.PONDER:
@@ -1463,14 +1507,23 @@ class DgtMenu(object):
             text = self._get_current_speaker(speakers, self.menu_system_voice_comp_speak)
 
         elif self.state == MenuState.SYS_VOICE_SPEED:
-            self.state = MenuState.SYS_VOICE_USER
+            self.state = MenuState.SYS_VOICE_VOLUME # WD
             self.menu_system_voice = VoiceLoop.prev(self.menu_system_voice)
             text = self.dgttranslate.text(self.menu_system_voice.value)
 
         elif self.state == MenuState.SYS_VOICE_SPEED_FACTOR:
             self.menu_system_voice_speedfactor = (self.menu_system_voice_speedfactor - 1) % 10
             text = self.dgttranslate.text('B00_voice_speed', str(self.menu_system_voice_speedfactor))
+          
+        elif self.state == MenuState.SYS_VOICE_VOLUME: #WD
+            self.state = MenuState.SYS_VOICE_USER
+            self.menu_system_voice = VoiceLoop.prev(self.menu_system_voice)
+            text = self.dgttranslate.text(self.menu_system_voice.value)
 
+        elif self.state == MenuState.SYS_VOICE_VOLUME_FACTOR:
+            self.menu_system_voice_volumefactor = (self.menu_system_voice_volumefactor - 1) % 11
+            text = self.dgttranslate.text('B00_voice_volume', str(self.menu_system_voice_volumefactor))
+            
         elif self.state == MenuState.SYS_DISP:
             self.state = MenuState.SYS_VOICE
             self.menu_system = SystemLoop.prev(self.menu_system)
@@ -1672,7 +1725,7 @@ class DgtMenu(object):
             text = self.dgttranslate.text(self.menu_system.value)
 
         elif self.state == MenuState.SYS_VOICE_USER:
-            self.state = MenuState.SYS_VOICE_SPEED
+            self.state = MenuState.SYS_VOICE_VOLUME # WD
             self.menu_system_voice = VoiceLoop.next(self.menu_system_voice)
             text = self.dgttranslate.text(self.menu_system_voice.value)
 
@@ -1721,6 +1774,15 @@ class DgtMenu(object):
         elif self.state == MenuState.SYS_VOICE_SPEED_FACTOR:
             self.menu_system_voice_speedfactor = (self.menu_system_voice_speedfactor + 1) % 10
             text = self.dgttranslate.text('B00_voice_speed', str(self.menu_system_voice_speedfactor))
+
+        elif self.state == MenuState.SYS_VOICE_VOLUME: #WD
+            self.state = MenuState.SYS_VOICE_SPEED
+            self.menu_system_voice = VoiceLoop.next(self.menu_system_voice)
+            text = self.dgttranslate.text(self.menu_system_voice.value)
+
+        elif self.state == MenuState.SYS_VOICE_VOLUME_FACTOR: #WD
+            self.menu_system_voice_volumefactor = (self.menu_system_voice_volumefactor + 1) % 11
+            text = self.dgttranslate.text('B00_voice_volume', str(self.menu_system_voice_volumefactor))
 
         elif self.state == MenuState.SYS_DISP:
             self.state = MenuState.SYS_INFO
