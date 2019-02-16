@@ -19,7 +19,7 @@ Following enhancements to the 0.9N version have been implemented:
         5.  Remote mode working again (without room handling, see menu.py)
         __________________________________________________________________________ 
         
-        6.  Version set to 2.0 ;-)
+        6.  Version set to 2.0 
         7.  Framework for adding (more or less funny) speech comments based on
             various events
         8.  Rolling display of time/score/depth/hintmove in Ponder On or Normal Mode
@@ -40,8 +40,10 @@ Following enhancements to the 0.9N version have been implemented:
             f5 ANALYSIS (flexible option on by default)           PONDER
             g5 TRAINING (this is new in 2.00)                       -
             h5 REMOTE (working again from 1.00 on)                REMOTE
-
-
+        14. Version set to 2.01
+        15. Support of changing the voice volume via menu option and picochess.ini
+        
+        
 If you don't want to replicate/replace the whole repository on your Pi and only if you are already on my personal picochess version 1.0, you only need to replace the following files in the picochess directory:
 
 Files to be replaced in…
