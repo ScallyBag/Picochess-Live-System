@@ -192,7 +192,10 @@ def main():
                 
                 for move in game_last_pgn.main_line():
                     game.push(move)
-                ##user_move(move, sliding=True)
+               
+                game.pop()
+                user_move(move, sliding=True) ## publish current position to webserver
+                       
                 turn = game.turn
                 logging.debug('molli: turn from last game %s number of moves %s', str(turn))
               
