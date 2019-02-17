@@ -15,7 +15,7 @@ Following enhancements to the 0.9N version have been implemented:
             own move could be played before computer move - it doesn't matter
         4.  New flexible ponder mode: no more checks if valid moves, position can
             be setup without any restrictions (of course it must be a legal one)
-            Makes analysis and playing differenet variants much easier
+            Makes analysis and playing different variants much easier
         5.  Remote mode working again (without room handling, see menu.py)
         __________________________________________________________________________ 
         
