@@ -197,10 +197,7 @@ def main():
                 logging.debug('molli: turn from last game %s number of moves %s', str(turn))
               
                 stop_search_and_clock()
-                if interaction_mode == Mode.TRAINING: # and not engine.is_waiting(): # Test WD
-                    logging.warning('engine not already waiting for newgame (error_fen) ------')
                 engine.newgame(game.copy())
-#                time.sleep(2) ## molli avoid freezes
                 done_computer_fen = None
                 done_move = pb_move = chess.Move.null()
                 time_control.reset()
@@ -250,7 +247,6 @@ def main():
                     game = chess.Board(bit_board.fen())
                     stop_search_and_clock()
                     engine.newgame(game.copy())
-#                    time.sleep(2) ## molli avoid freezes
                     done_computer_fen = None
                     done_move = pb_move = chess.Move.null()
                     time_control.reset()
@@ -273,7 +269,6 @@ def main():
                         game = chess.Board(bit_board.fen())
                         stop_search_and_clock()
                         engine.newgame(game.copy())
-#                        time.sleep(2) ## molli avoid freezes
                         done_computer_fen = None
                         done_move = pb_move = chess.Move.null()
                         time_control.reset()
@@ -548,6 +543,7 @@ def main():
         # Check for same position
         if fen == game.board_fen():
             logging.debug('Already in this fen: %s', fen)
+            flag_startup = False    
         # Check if we have to undo a previous move (sliding)
         elif fen in last_legal_fens:
             logging.info('sliding move detected')
@@ -1025,11 +1021,8 @@ def main():
     args.engine_level = None if args.engine_level == 'None' else args.engine_level
     engine_opt, level_index = get_engine_level_dict(args.engine_level)
     engine.startup(engine_opt)
-    if interaction_mode == Mode.TRAINING and not engine.is_waiting(): # Test WD
-        logging.warning('engine not already waiting for newgame (Startup) ------')
 
     engine.newgame(game.copy())
-#    time.sleep(2) ## molli avoid freezes
 
     # Startup - external
     level_name = args.engine_level
@@ -1122,12 +1115,6 @@ def main():
 
                     engine.startup(event.options)
                     stop_search_and_clock()  ##molli avoid freezes
-                    if interaction_mode == Mode.TRAINING: # Test WD
-                        if engine.is_waiting():
-                            logging.warning('engine already waiting for newgame (Event.New_Engine) ++++++')
-                        else:
-#                            time.sleep(3)
-                            logging.warning('engine not already waiting for newgame (Event.New_Engine) ------')
 
                     engine.newgame(game.copy())
 
@@ -1216,13 +1203,6 @@ def main():
                         engine.stop()
                    
                     engine.newgame(game.copy())
-
-                    if interaction_mode == Mode.TRAINING: # Test WD
-                        logging.warning('engine not already waiting for newgame (NewGame 2) ------')
-
-
-#                    if interaction_mode == Mode.TRAINING:
-#                        time.sleep(3) ## molli: avoid freezes
                     
                     done_computer_fen = None
                     done_move = pb_move = chess.Move.null()
@@ -1281,15 +1261,8 @@ def main():
                     if bit_board.is_valid():
                         game = chess.Board(bit_board.fen())
                         stop_search_and_clock()
-                        if interaction_mode == Mode.TRAINING: # Test WD
-                            if engine.is_waiting():
-                                logging.warning('engine already waiting for newgame (Event.Switch_Sides) ++++++')
-                            else:
-#                                time.sleep(3)
-                                logging.warning('engine not already waiting for newgame (Event.Switch_Sides) ------')
                         
                         engine.newgame(game.copy())
-#                        time.sleep(2) ## molli avoid freezes
                         done_computer_fen = None
                         done_move = pb_move = chess.Move.null()
                         time_control.reset()
