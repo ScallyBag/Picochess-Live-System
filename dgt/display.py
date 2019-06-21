@@ -558,15 +558,10 @@ class DgtDisplay(DisplayMsg, threading.Thread):
     def _process_user_move_done(self, message):
         self.force_leds_off(log=True)  # can happen in case of a sliding move
         
-        ##logging.debug('molli players mode %s', str(self.play_mode))
-        ##logging.debug('molli message.turn %s', str(message.turn))
-        ##logging.debug('molli play.turn %s', str(self.play_turn))
-        ##logging.debug('molli last.turn %s', str(self.last_turn))
-        
-        if message.turn == False:
-            self.c_last_player = 'C' ##molli
+        if self.c_last_player == 'C' or self.c_last_player == '': ##molli
+            self.c_last_player = 'U'
         else:
-            self.c_last_player = 'U' ##molli
+            self.c_last_player = 'C'
         
         self.c_time_counter = 0  ##molli
         
@@ -928,10 +923,6 @@ class DgtDisplay(DisplayMsg, threading.Thread):
 
         elif isinstance(message, Message.SWITCH_SIDES):
             self.c_time_counter = 0 ##molli
-            if self.c_last_player == 'C' or self.c_last_player == '': ##molli
-                self.c_last_player = 'U'
-            else:
-                self.c_last_player = 'C'
 
             if self.play_mode == PlayMode.USER_WHITE:
                 self.play_mode == PlayMode.USER_BLACK
