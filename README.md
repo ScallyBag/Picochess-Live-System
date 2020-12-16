@@ -13,7 +13,7 @@ This is an enhancement of the last main picochhess version 09N and includes chan
 
 IMPORTANT:
 -------------------------------------------------------------------------------------------
-This repositotry is only for code reference - it won't be a fully 3.0 version because of the github restrictions (25MB each file and less than 100 files in one folder) so don't expect to be able to use this repository as a working picochess version as a lot of (non source) fiels are missing for a working V3 (eg audo example samples for the replay feature or the mame emulator framework).
+This repositotry is only for code reference - it won't be a fully 3.0 working version because of the github restrictions (25MB each file and less than 100 files in one folder) so don't expect to be able to use this repository as a working picochess version as a lot of (non source) fiels are missing for a working V3 (eg audo example samples for the replay feature or the mame emulator framework).
 
 
 Installation:
