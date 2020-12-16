@@ -25,6 +25,7 @@ from dgt.util import ClockIcons, ClockSide
 from dgt.api import Dgt
 from dgt.translate import DgtTranslate
 from dgt.board import DgtBoard
+from dgt.board import Rev2Info ## molli Rev2
 
 
 class DgtIface(DisplayDgt, Thread):
@@ -53,6 +54,10 @@ class DgtIface(DisplayDgt, Thread):
         raise NotImplementedError()
 
     def light_squares_on_revelation(self, uci_move):
+        """Override this function."""
+        raise NotImplementedError()
+        
+    def light_square_on_revelation(self, square):
         """Override this function."""
         raise NotImplementedError()
 
@@ -118,7 +123,12 @@ class DgtIface(DisplayDgt, Thread):
             move_text = move_text.format(message.move.uci()[:4])
 
         if message.side == ClockSide.RIGHT:
-            move_text = move_text.rjust(6 if is_xl else 8)
+            ## move_text = move_text.rjust(6 if is_xl else 8)  
+            if Rev2Info.get_new_rev2_mode():
+                move_text = move_text.rjust(5)  ## molli REV2
+            else:
+                move_text = move_text.rjust(6 if is_xl else 8)
+                    
         return bit_board, move(move_text, message.lang, message.capital and not is_xl, not message.long)
 
     def _process_message(self, message):
@@ -140,6 +150,8 @@ class DgtIface(DisplayDgt, Thread):
             self.case_res = self.clear_light_on_revelation()
         elif isinstance(message, Dgt.LIGHT_SQUARES):
             self.case_res = self.light_squares_on_revelation(message.uci_move)
+        elif isinstance(message, Dgt.LIGHT_SQUARE):
+            self.case_res = self.light_square_on_revelation(message.square)
         elif isinstance(message, Dgt.CLOCK_SET):
             self.case_res = self.set_clock(message.time_left, message.time_right, message.devs)
         elif isinstance(message, Dgt.CLOCK_START):

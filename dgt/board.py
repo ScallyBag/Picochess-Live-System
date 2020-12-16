@@ -28,6 +28,30 @@ from dgt.util import DgtAck, DgtClk, DgtCmd, DgtMsg, ClockIcons, ClockSide, enum
 from dgt.api import Message, Dgt
 from utilities import RepeatedTimer, DisplayMsg, hms_time
 
+class Rev2Info():
+    
+    is_revelation = False
+    is_pi = False
+    is_dgtpi = False
+    
+    @classmethod
+    def set_revelation(cls, rev):
+        Rev2Info.is_revelation = rev
+        
+    @classmethod
+    def set_pi_mode(cls, pi_mode):
+        Rev2Info.is_pi = pi_mode
+        
+    @classmethod
+    def get_pi_mode(cls):
+        return Rev2Info.is_pi
+    
+    @classmethod
+    def get_new_rev2_mode(cls):
+        if Rev2Info.is_revelation and Rev2Info.is_pi:
+            return True
+        else:
+            return False
 
 class DgtBoard(object):
 
@@ -41,6 +65,7 @@ class DgtBoard(object):
         self.disable_revelation_leds = disable_revelation_leds
         self.enable_revelation_pi = False
         self.is_revelation = False
+        self.reverse = False ## molli REV2 LED bug
 
         self.is_pi = is_pi
         self.disable_end = disable_end  # @todo for test - XL needs a "end_text" maybe!
@@ -77,6 +102,12 @@ class DgtBoard(object):
 
         self.in_settime = False  # this is true between set_clock and clock_start => use set values instead of clock
         self.low_time = False  # This is set from picochess.py and used to limit the field timer
+    ## molli REV2 LED bug
+    def set_reverse(self,flag):
+        self.reverse = flag
+        
+    def get_reverse(self):
+        return self.reverse
 
     def expired_field_timer(self):
         """Board position hasnt changed for some time."""
@@ -183,6 +214,7 @@ class DgtBoard(object):
                 if 'REVII' in self.bt_name:
                     text_l, text_m, text_s = 'RevII ' + btname5, 'Rev' + btname5, 'b' + btname5
                     self.is_revelation = True
+                    Rev2Info.set_revelation(self.is_revelation)
                     self.write_command([DgtCmd.DGT_RETURN_LONG_SERIALNR])
                 elif 'DGT_BT' in self.bt_name:
                     text_l, text_m, text_s = 'DGTBT ' + btname5, 'BT ' + btname5, 'b' + btname5
@@ -374,6 +406,7 @@ class DgtBoard(object):
                 logging.warning('illegal length in data')
             number = ''.join([chr(elem) for elem in message])
             self.enable_revelation_pi = float(number[:4]) >= 3.25  # "3.250010001"=yes "0000000001"=no
+            Rev2Info.set_pi_mode(self.enable_revelation_pi)
             logging.info('(rev) clock in PiMode: %s - serial: %s', 'yes' if self.enable_revelation_pi else 'no', number)
 
         elif message_id == DgtMsg.DGT_MSG_BATTERY_STATUS:
@@ -713,6 +746,7 @@ class DgtBoard(object):
     def set_text_3k(self, text: str, beep: int):
         """Display a text on a 3000 Clock."""
         self._wait_for_clock('SetText3K()')
+        Rev2Info.set_pi_mode(True)
         res = self.write_command([DgtCmd.DGT_CLOCK_MESSAGE, 0x0c, DgtClk.DGT_CMD_CLOCK_START_MESSAGE,
                                   DgtClk.DGT_CMD_CLOCK_ASCII,
                                   text[0], text[1], text[2], text[3], text[4], text[5], text[6], text[7], beep,
@@ -766,6 +800,16 @@ class DgtBoard(object):
             logging.debug('(rev) leds turned on - move: %s', uci_move)
             fr_s = (8 - int(uci_move[1])) * 8 + ord(uci_move[0]) - ord('a')
             to_s = (8 - int(uci_move[3])) * 8 + ord(uci_move[2]) - ord('a')
+            self.write_command([DgtCmd.DGT_SET_LEDS, 0x04, 0x01, fr_s, to_s, DgtClk.DGT_CMD_CLOCK_END_MESSAGE])
+            
+    def light_square_on_revelation(self, square: str):
+        """Light the Rev2 leds."""
+        if self.is_revelation and not self.disable_revelation_leds:
+            # self._wait_for_clock('LIGHTon')
+            logging.debug('molli:(rev) leds turned on - square: %s', square)
+            fr_s = (8 - int(square[1])) * 8 + ord(square[0]) - ord('a')
+            ##to_s = (8 - int('1') * 8 + ord('a') - ord('a'))
+            to_s = fr_s
             self.write_command([DgtCmd.DGT_SET_LEDS, 0x04, 0x01, fr_s, to_s, DgtClk.DGT_CMD_CLOCK_END_MESSAGE])
 
     def clear_light_on_revelation(self):

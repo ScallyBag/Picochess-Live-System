@@ -27,6 +27,7 @@ from dgt.util import ClockIcons, ClockSide
 from dgt.translate import DgtTranslate
 from dgt.board import DgtBoard
 from dgt.iface import DgtIface
+from dgt.board import Rev2Info ## molli Rev2
 
 
 class DgtPi(DgtIface):
@@ -163,6 +164,9 @@ class DgtPi(DgtIface):
     def display_move_on_clock(self, message):
         """Display a move on the dgtpi."""
         bit_board, text = self.get_san(message)
+        ## molli rev2 changes
+        if Rev2Info.get_new_rev2_mode():
+            text = '. ' + text ##molli rev2
         text = '{:3d}{:s}'.format(bit_board.fullmove_number, text)
         if self.get_name() not in message.devs:
             logging.debug('ignored %s - devs: %s', text, message.devs)
@@ -191,6 +195,10 @@ class DgtPi(DgtIface):
         return True
 
     def light_squares_on_revelation(self, uci_move: str):
+        """Handle this by hw.py."""
+        return True
+        
+    def light_square_on_revelation(self, square: str): ##molli
         """Handle this by hw.py."""
         return True
 

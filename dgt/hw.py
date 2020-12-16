@@ -96,7 +96,11 @@ class DgtHw(DgtIface):
         if self.enable_dgt3000 or is_new_rev2:
             bit_board, text = self.get_san(message)
             if is_new_rev2:
-                text = '{:3d}{:s}'.format(bit_board.fullmove_number, text)
+                points = '...' if message.side == ClockSide.RIGHT else '.'
+                ## text = '{:3d}{:s}'.format(bit_board.fullmove_number, text) ## orig
+                if len(text) > 5:
+                    points = '.'
+                text = '{:3d}{:s}{:s}'.format(bit_board.fullmove_number, points, text) ## REV2 molli
         else:
             text = message.move.uci()
             if message.side == ClockSide.RIGHT:
@@ -138,6 +142,11 @@ class DgtHw(DgtIface):
     def light_squares_on_revelation(self, uci_move: str):
         """Light the Rev2 leds."""
         self.dgtboard.light_squares_on_revelation(uci_move)
+        return True
+        
+    def light_square_on_revelation(self, square: str): ##molli
+        """Light the Rev2 led."""
+        self.dgtboard.light_square_on_revelation(square)
         return True
 
     def clear_light_on_revelation(self):
