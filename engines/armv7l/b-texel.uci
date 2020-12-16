@@ -1,3 +1,10 @@
+[DEFAULT]
+Hash = 128
+OwnBook = true
+BookFile = /opt/picochess/books/texel.bin
+Threads = 1
+SyzygyPath = /opt/picochess/tablebases/syzygy
+
 [Level@00]
 Strength = 0
 
