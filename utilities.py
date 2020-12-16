@@ -35,7 +35,8 @@ from dgt.api import Dgt
 from configobj import ConfigObj, ConfigObjError, DuplicateError
 
 # picochess version
-version = '201' ##molli
+version = '3' ##molli
+##version_rev2 = '3.0' ##molli
 
 evt_queue = queue.Queue()
 dispatch_queue = queue.Queue()
@@ -236,8 +237,9 @@ def shutdown(dgtpi: bool, dev: str):
     time.sleep(3)  # give some time to send out the pgn file or speak the event
     if platform.system() == 'Windows':
         os.system('shutdown /s')
-    elif dgtpi:
-        os.system('systemctl isolate dgtpistandby.target')
+    ## molli: allow bluetooth reconnection when switching off and power supply is not cut
+    ##elif dgtpi:
+    ##    os.system('systemctl isolate dgtpistandby.target')
     else:
         os.system('shutdown -h now')
 
@@ -249,9 +251,9 @@ def reboot(dgtpi: bool, dev: str):
     if platform.system() == 'Windows':
         os.system('shutdown /r')
     elif dgtpi:
-        os.system('systemctl restart picochess')
+        os.system('sudo reboot')
     else:
-        os.system('reboot')
+        os.system('sudo reboot')
 
 
 def get_location():
@@ -261,7 +263,6 @@ def get_location():
         sock.connect(('8.8.8.8', 80))
         int_ip = sock.getsockname()[0]
         sock.close()
-
         response = urllib.request.urlopen('http://will6.de/freegeoip')
         j = json.loads(response.read().decode())
         country_name = j['country_name'] + ' ' if 'country_name' in j else ''
