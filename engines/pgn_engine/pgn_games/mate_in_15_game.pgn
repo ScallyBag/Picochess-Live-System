@@ -1,0 +1,22 @@
+[Event "PicoChess Game"]
+[Site "Hamburg"]
+[Date "2019.07.22"]
+[Round "?"]
+[White "Molli"]
+[Black "Nemorino 5.14 (No Popcount) (1 Core)"]
+[Result "0-1"]
+[Time "15:39:28"]
+[WhiteElo "1300"]
+[BlackElo "2897"]
+[PicoDepth "0"]
+[PicoTimeControl "5 0"]
+[PicoRemTimeW "55"]
+[PicoRemTimeB "163"]
+[Opening "KGA: Cunningham, Euwe Defence"]
+[ECO "C35"]
+
+1. e4 e5 2. f4 exf4 3. Nf3 Be7 4. Bc4 Nf6 5. Nc3 Nxe4 6. Bxf7+ Kxf7 7. Nxe4 Rf8
+8. Ne5+ Kg8 9. d4 Bh4+ 10. g3 d6 11. Nf3 d5 12. gxh4 dxe4 13. Ng5 h6 14. Nxe4
+Qxh4+ 15. Kd2 f3 16. Qe1 f2 17. Qe2 Bh3 18. Ng3 Qxd4+ 19. Qd3 Qf6 20. Qd5+ Kh8
+21. b3 Rd8 22. Qxd8+ Qxd8+ 23. Ke2 Bg4+ 24. Kxf2 Qf6+ 25. Ke3 Nc6 26. Rb1 Qd4#
+0-1

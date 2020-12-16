@@ -1,0 +1,31 @@
+[Event "#3443 Chess: 5334 Problems, Combinations, and Games"]
+[Site "Copyright 1994 Kemann"]
+[Date "1994.??.??"]
+[Round "?"]
+[White "Mate in two"]
+[Black "White to move"]
+[Result "*"]
+[FEN "8/8/2p3K1/8/2p1kpN1/8/3Q4/8 w - - 0 1"]
+
+1.Qc3 {threatening Cf6#(#1)} 
+1...c5 
+    ( 1...Kd5 2.Qe5# )
+    ( 1...f3 2.Qxc4# )
+2.Nf6# 
+*
+
+[Event "#3443 Chess: 5334 Problems, Combinations, and Games"]
+[Site "Copyright 1994 Kemann"]
+[Date "1994.??.??"]
+[Round "?"]
+[White "Mate in three"]
+[Black "Black to move"]
+[Result "*"]
+[FEN "8/8/2p3K1/8/2p1kpN1/8/3Q4/8 b - - 0 1"]
+
+1.Qc3 {threatening Cf6#(#1)} 
+1...c5 
+    ( 1...Kd5 2.Qe5# )
+    ( 1...f3 2.Qxc4# )
+2.Nf6# 
+*
