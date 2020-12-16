@@ -10,9 +10,14 @@ See [installation instructions](http://docs.picochess.org/en/latest/installation
 
 This is an enhancement of the last main picochhess version 09N and includes changes of my version 1.0, 2.01 and 3.0
 
+
 IMPORTANT:
+-------------------------------------------------------------------------------------------
 This repositotry is only for code reference - it won't be a fully 3.0 version because of the github restrictions (25MB each file and less than 100 files in one folder) so don't expect to be able to use this repository as a working picochess version as a lot of (non source) fiels are missing for a working V3 (eg audo example samples for the replay feature or the mame emulator framework).
 
+
+Installation:
+-------------------------------------------------------------------------------------------
 In addition to the standard Picochess set-up (see the Picochess 09N documentation) you need to do the following installation/modification steps:
 
 - install audio lib pygame: sudo apt-get install python3-pygame
@@ -32,7 +37,6 @@ Bug fix:
  if movestogo is not None and int(movestogo) > 0:
 Instead of
  if movestogo is not None and movestogo > 0:
-
 
 
 You can find more information in these follwong threads:
