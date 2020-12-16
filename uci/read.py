@@ -15,14 +15,19 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
+import logging
 import platform
 import configparser
 import os
 from dgt.api import Dgt
 
 
-def read_engine_ini(engine_shell=None, engine_path=None):
+def read_engine_ini(engine_shell=None, engine_path=None, filename=''):
     """Read engine.ini and creates a library list out of it."""
+    if filename == '':
+        filename = 'engines.ini'
+    else:
+        filename = 'favorites.ini'
     config = configparser.ConfigParser()
     config.optionxform = str
     try:
@@ -30,9 +35,11 @@ def read_engine_ini(engine_shell=None, engine_path=None):
             if not engine_path:
                 program_path = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
                 engine_path = program_path + os.sep + 'engines' + os.sep + platform.machine()
-            config.read(engine_path + os.sep + 'engines.ini')
+            logging.debug('molli: complete path without shell: %s', str(engine_path + os.sep + filename))
+            config.read(engine_path + os.sep + filename)
         else:
-            with engine_shell.open(engine_path + os.sep + 'engines.ini', 'r') as file:
+            logging.debug('molli: complete path: %s', str(engine_path + os.sep + filename))
+            with engine_shell.open(engine_path + os.sep + filename, 'r') as file:
                 config.read_file(file)
     except FileNotFoundError:
         pass

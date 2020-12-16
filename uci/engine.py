@@ -34,15 +34,23 @@ class UciShell(object):
 
     """Handle the uci engine shell."""
 
-    def __init__(self, hostname=None, username=None, key_file=None, password=None):
+    def __init__(self, hostname=None, username=None, key_file=None, password=None, windows=False):
         super(UciShell, self).__init__()
         if hostname:
             logging.info('connecting to [%s]', hostname)
             if key_file:
-                self.shell = spur.SshShell(hostname=hostname, username=username, private_key_file=key_file,
+                if windows:
+                    self.shell = spur.SshShell(hostname=hostname, username=username, private_key_file=key_file,
+                                                              missing_host_key=paramiko.AutoAddPolicy(), shell_type=spur.ssh.ShellTypes.windows)
+                else:
+                    self.shell = spur.SshShell(hostname=hostname, username=username, private_key_file=key_file,
                                            missing_host_key=paramiko.AutoAddPolicy())
             else:
-                self.shell = spur.SshShell(hostname=hostname, username=username, password=password,
+                if windows:
+                    self.shell = spur.SshShell(hostname=hostname, username=username, password=password,
+                                                              missing_host_key=paramiko.AutoAddPolicy(), shell_type=spur.ssh.ShellTypes.windows)
+                else:
+                    self.shell = spur.SshShell(hostname=hostname, username=username, password=password,
                                            missing_host_key=paramiko.AutoAddPolicy())
         else:
             self.shell = None
@@ -55,12 +63,14 @@ class UciEngine(object):
 
     """Handle the uci engine communication."""
 
-    def __init__(self, file: str, uci_shell: UciShell,  home=''):
+    def __init__(self, file: str, uci_shell: UciShell, home=''):
         super(UciEngine, self).__init__()
+        favorites = ''
         try:
             self.shell = uci_shell.get()
             if home:
-                file = home + os.sep + file
+                # file = home + os.sep + file # wd
+                pass   # wd 
             if self.shell:
                 self.engine = chess.uci.spur_spawn_engine(self.shell, [file])
             else:
@@ -79,7 +89,11 @@ class UciEngine(object):
 
             self.res = None
             self.level_support = False
-            self.installed_engines = read_engine_ini(self.shell, (file.rsplit(os.sep, 1))[0])
+            # self.installed_engines = read_engine_ini(self.shell, (file.rsplit(os.sep, 1))[0]) # wd
+            # self.installed_engines2 = read_engine_ini()engine_shell=self.shell, engine_path=(file.rsplit(os.sep, 1))[0], filename='favorites.ini') ## favorites # wd
+
+            self.installed_engines = read_engine_ini()  # wd
+            self.installed_engines2 = read_engine_ini(filename='favorites.ini') ## favorites # wd
 
         except OSError:
             logging.exception('OS error in starting engine')
@@ -93,6 +107,10 @@ class UciEngine(object):
     def get_options(self):
         """Get engine options."""
         return self.engine.options
+    
+    def get_pgn_options(self):   ## molli pgn
+        """Get options."""
+        return self.options
 
     def option(self, name, value):
         """Set OptionName with value."""
@@ -138,6 +156,10 @@ class UciEngine(object):
     def get_installed_engines(self):
         """Get installed engines."""
         return self.installed_engines
+    ## Favorites
+    def get_installed_engines2(self):
+        """Get installed engines."""
+        return self.installed_engines2
 
     def position(self, game: Board):
         """Set position."""
@@ -168,14 +190,27 @@ class UciEngine(object):
             logging.error('Engine terminated')  # @todo find out, why this can happen!
         return self.future.result()
 
+    def pause_pgn_audio(self):  ##molli v3
+        """Stop engine."""
+        logging.info('pause audio old')
+        try:
+            self.engine.uci() ## pseudo command
+        except chess.uci.EngineTerminatedException:
+            logging.error('Engine terminated')  # @todo find out, why this can happen!
+
     def go(self, time_dict: dict):
         """Go engine."""
         self.show_best = True
         time_dict['async_callback'] = self.callback
-
+        logging.debug('molli: timedict: %s', str(time_dict))
         # Observable.fire(Event.START_SEARCH())
         self.future = self.engine.go(**time_dict)
         return self.future
+    
+    def go_emu(self):
+        """Go engine."""
+        logging.debug('molli: go_emu')
+        self.future = self.engine.go(async_callback=self.callback)
 
     def ponder(self):
         """Ponder engine."""
