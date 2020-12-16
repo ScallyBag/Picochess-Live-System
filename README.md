@@ -7,7 +7,6 @@ Stand alone chess computer based on [Raspberry Pi](http://www.raspberrypi.org/) 
 
 See [installation instructions](http://docs.picochess.org/en/latest/installation.html), [manual](http://docs.picochess.org), and [website](http://www.picochess.org).
 
-[![Code Health](https://landscape.io/github/jromang/picochess/master/landscape.png)](https://landscape.io/github/jromang/picochess/master) [![Documentation Status](https://readthedocs.org/projects/picochess/badge/?version=latest)](https://readthedocs.org/projects/picochess/?badge=latest)
 
 This is an enhancement of the last main picochhess version 09N and includes changes of my version 1.0, 2.01 and 3.0
 
