@@ -15,57 +15,7 @@ const NAG_DUBIOUS_MOVE = 6;
 var simpleNags = {'1': '!', '2': '?', '3': '!!', '4': '??', '5': '!?', '6': '?!', '7': '&#9633', '8': '&#9632',
     '11': '=', '13': '&infin;', '14': '&#10866', '15': '&#10865', '16': '&plusmn;', '17': '&#8723',
     '18': '&#43; &minus;', '19': '&minus; &#43;', '36': '&rarr;','142': '&#8979','146': 'N'};
-var myvoice = "";
-var voices = speechSynthesis.getVoices();
-/* martin/molli: for Safari we need to pick an English voice explicitly,
-   otherwise the system default is used */
-for (i = 0; i < voices.length; i++) {
-    if (voices[i].lang == "en-US") {
-        myvoice = voices[i];
-        break;
-    }
-}
-function talk(text) {
-    var msg = new SpeechSynthesisUtterance(text);
-    msg.lang = "en-US";
-    if (myvoice != "") {
-        msg.voice = myvoice;
-    }
-    window.speechSynthesis.speak(msg);
-}
-talk("Hello, welcome to Picochess!");
 
-function saymove(move, board) {
-    var pnames = {
-	"p": "pawn",
-	"n": "knight",
-	"b": "bishop",
-	"r": "rook",
-	"q": "queen",
-	"k": "king",
-    };
-    talk(pnames[move.piece] + " from " + move.from + " to " + move.to + ".");
-    if (move.color == "b") {
-        var sidm = "Black";
-    } else {
-        var sidm = "White";
-    }
-    if (move.flags.includes("e")) {
-        talk("Pawn takes pawn.");
-    } else if (move.flags.includes("c")) {
-        talk(pnames[move.piece] + " takes " + pnames[move.captured] + ".");
-    } else if (move.flags.includes("k")) {
-        talk(sidm + " castles kingside.");
-    } else if (move.flags.includes("q")) {
-        talk(sidm + " castles queenside.");
-    }
-
-    if (board.in_checkmate()) {
-        talk("Checkmate!");
-    } else if (board.in_check()) {
-        talk("Check!");
-    }
-}
 
 const NAG_FORCED_MOVE = 7;
 const NAG_SINGULAR_MOVE = 8;
@@ -121,7 +71,7 @@ gameHistory.variations = [];
 var setupBoardFen = START_FEN;
 var dataTableFen = START_FEN;
 var chessGameType = 0; // 0=Standard ; 1=Chess960
-var computerside = "";  // color played by the computer
+
 
 function removeHighlights() {
     chessground1.setShapes([]);
@@ -731,7 +681,6 @@ var onSnapEnd = function(source, target) {
         to: target,
         promotion: 'q' // NOTE: always promote to a pawn for example simplicity
     });
-
     updateCurrentPosition(move, tmpGame);
     updateChessGround();
     //updateStatus(); //molli
@@ -876,7 +825,6 @@ function loadGame(pgn_lines) {
     var starting_comment = '';
 
     var result;
-    var lastmove;
     while ((result = game_body_regex.exec(game_body)) !== null) {
 
         var token = result[0];
@@ -970,15 +918,10 @@ function loadGame(pgn_lines) {
                 props.starting_comment = starting_comment;
                 starting_comment = '';
             }
-            lastmove = move;
 
             var __ret = addNewMove({'move': move}, variation_stack[last_variation_stack_index], board_stack[last_board_stack_index].fen(), props);
             variation_stack[last_variation_stack_index] = __ret.node;
         }
-    }
-    if (computerside == "" || (computerside != "" && lastmove.color != computerside)) {
-        var tmp_board = new Chess(currentPosition.fen, chessGameType);
-        saymove(lastmove, tmp_board);  // announce user move
     }
     fenHash['last'] = fenHash[tmpGame.fen()];
 
@@ -1825,10 +1768,6 @@ $(function() {
                     dgtClockStatusEl.html(data.msg);
                     break;
                 case 'Light':
-                    var tmp_board = new Chess(currentPosition.fen, chessGameType);
-                    var tmp_move = tmp_board.move(data.move, {sloppy: true});
-                    computerside = tmp_move.color;
-                    saymove(tmp_move, tmp_board);
                     highlightBoard(data.move, 'computer');
                     break;
                 case 'Clear':
