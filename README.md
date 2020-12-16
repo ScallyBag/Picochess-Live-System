@@ -15,7 +15,7 @@ IMPORTANT:
 This repositotry is only for code reference - it won't be a fully 3.0 version because of the github restrictions (25MB each file and less than 100 files in one folder) so don't expect to be able to use this repository as a working picochess version as a lot of (non source) fiels are missing for a working V3.
 
 
-You can find more information i these follwong threads:
+You can find more information in these follwong threads:
 
 1. The hardware I use: https://groups.google.com/g/picochess/c/jC-EEwEd15M 
 
@@ -25,6 +25,7 @@ You can find more information i these follwong threads:
 
 4. The thread for the V3 image for the Raspebrry Pi (DGTPI and nonDGTPI versions):
 https://groups.google.com/g/picochess/c/SpNFpp2Scw4
+
 
 This is the (probably incomplete) change log of all changes from 1.0 on up to 3.0
 
@@ -268,4 +269,5 @@ This is the (probably incomplete) change log of all changes from 1.0 on up to 3.
 #            This will continue as long as the correct position has been set up.
 #
 ############################################################################################
+
 
