@@ -13,6 +13,27 @@ This is an enhancement of the last main picochhess version 09N and includes chan
 IMPORTANT:
 This repositotry is only for code reference - it won't be a fully 3.0 version because of the github restrictions (25MB each file and less than 100 files in one folder) so don't expect to be able to use this repository as a working picochess version as a lot of (non source) fiels are missing for a working V3 (eg audo example samples for the replay feature or the mame emulator framework).
 
+In addition to the standard Picochess set-up (see the Picochess 09N documentation) you need to do the following installation/modification steps:
+
+- install audio lib pygame: sudo apt-get install python3-pygame
+- Install telnet: sudo apt-get install telnet (don’t know if this is already installed by default)
+- BERSERK: sudo pip3 install berserk (evtl. for the lichess client)
+- mame emulator:  -- set Memory Split Factor >= 64GB
+                  -- install the  packages  needed: sudo apt-get install git build-essential libsdl2-dev libsdl2-ttf-dev libfontconfig-dev qt5-  default
+- Modification for the windows ssh comunication thanks to help of the community: I removed spur and paramiko: sudo pip3 uninstall spursudo pip3 uninstall paramiko, then updated them to their latest versions (spur-0.3.21 and paramiko-2.7.1): sudo pip3 install spur,sudo pip3 install paramiko, I then renamed /usr/local/lib/python3.7/dist-packages/spur/ssh.py as ssh.py0321 and placed the version with windows support (as suggested by Hasnul - thanks!) from the spur folder here: https://github.com/tfromme/spur.py 
+
+-  python-chess bugfix modification for tournament  time controls:
+Python Chess is installed on my system: /usr/local/lib/python3.7/dist-packages/chess
+in file uci.py (for tournament setting):
+
+def go 
+...
+Bug fix:
+ if movestogo is not None and int(movestogo) > 0:
+Instead of
+ if movestogo is not None and movestogo > 0:
+
+
 
 You can find more information in these follwong threads:
 
