@@ -20,6 +20,7 @@ import threading
 import logging
 import copy
 from math import floor
+from math import ceil ##molli for online
 
 from utilities import Observable, hms_time
 import chess
@@ -31,13 +32,26 @@ class TimeControl(object):
 
     """Control the picochess internal clock."""
 
-    def __init__(self, mode=TimeMode.FIXED, fixed=0, blitz=0, fischer=0, internal_time=None):
+    def __init__(self, mode=TimeMode.FIXED, fixed=0, blitz=0, fischer=0, moves_to_go=0, blitz2=0, depth=0, internal_time=None):
         super(TimeControl, self).__init__()
         self.mode = mode
         self.move_time = fixed
         self.game_time = blitz
         self.fisch_inc = fischer
+        self.moves_to_go = moves_to_go ## molli tournament time control
+        self.moves_to_go_orig = moves_to_go
+        self.game_time2 = blitz2
+        self.depth = depth
         self.internal_time = internal_time
+        
+        if depth > 0:
+            self.mode = TimeMode.FIXED
+            self.move_time = 671
+            self.depth = depth
+            self.game_time = 0
+            self.fisch_inc = 0
+            self.moves_to_go_orig = 0
+            self.moves_to_go = 0
 
         self.clock_time = {chess.WHITE: 0, chess.BLACK: 0}  # saves the sended clock time for white/black
         self.timer = None
@@ -59,26 +73,33 @@ class TimeControl(object):
         return chk_mode and chk_secs and chk_mins and chk_finc
 
     def __hash__(self):
-        value = str(self.mode) + str(self.move_time) + str(self.game_time) + str(self.fisch_inc)
+        value = str(self.mode) + str(self.move_time) + str(self.game_time) + str(self.fisch_inc) + str(self.moves_to_go_orig) + str(self.game_time2) + str(self.depth)
         return hash(value)
 
     def get_parameters(self):
         """Return the state of this class for generating a new instance."""
-        return {'mode': self.mode, 'fixed': self.move_time, 'blitz': self.game_time,
-                'fischer': self.fisch_inc, 'internal_time': self.internal_time}
+        return {'mode': self.mode, 'fixed': self.move_time, 'blitz': self.game_time, 'fischer': self.fisch_inc, 'moves_to_go': self.moves_to_go_orig, 'blitz2': self.game_time2, 'depth': self.depth, 'internal_time': self.internal_time}
 
     def get_list_text(self):
         """Get the clock list text for the current time setting."""
+        if self.moves_to_go_orig > 0: ## molli tournament time control
+            if self.fisch_inc > 0:
+                return '{:2d} {:3d} {:2d} {:2d}'.format(self.moves_to_go_orig, self.game_time, self.fisch_inc, self.game_time2)
+            else:
+                return '{:2d} {:3d} {:2d}'.format(self.moves_to_go_orig, self.game_time, self.game_time2)
+        if self.depth > 0:
+            return '{:3d}'.format(self.depth)
         if self.mode == TimeMode.FIXED:
-            return '{:2d}'.format(self.move_time)
+            return '{:3d}'.format(self.move_time)
         if self.mode == TimeMode.BLITZ:
-            return '{:2d}'.format(self.game_time)
+            return '{:3d}'.format(self.game_time)
         if self.mode == TimeMode.FISCHER:
-            return '{:2d} {:2d}'.format(self.game_time, self.fisch_inc)
-        return 'errtm'
+            return '{:3d} {:2d}'.format(self.game_time, self.fisch_inc)
 
+        return 'errtm'
+    
     def reset(self):
-        """Reset the clock's times for both players."""
+    ## Reset the clock's times for both players."""
         if self.mode == TimeMode.BLITZ:
             self.clock_time[chess.WHITE] = self.clock_time[chess.BLACK] = self.game_time * 60
 
@@ -90,7 +111,10 @@ class TimeControl(object):
 
         self.internal_time = {chess.WHITE: float(self.clock_time[chess.WHITE]),
                               chess.BLACK: float(self.clock_time[chess.BLACK])}
+
         self.active_color = None
+
+        self.moves_to_go = self.moves_to_go_orig ## molli tournament time control
 
     def _log_time(self):
         time_w, time_b = self.get_internal_time(flip_board=False)
@@ -103,11 +127,12 @@ class TimeControl(object):
             i_time[chess.WHITE], i_time[chess.BLACK] = i_time[chess.BLACK], i_time[chess.WHITE]
         return int(i_time[chess.WHITE]), int(i_time[chess.BLACK])
 
-    def set_clock_times(self, white_time: int, black_time: int):
+    def set_clock_times(self, white_time: int, black_time: int, moves_to_go: int = 0):
         """Set the times send from the clock."""
         logging.info('set clock times w:%s b:%s', hms_time(white_time), hms_time(black_time))
         self.clock_time[chess.WHITE] = white_time
         self.clock_time[chess.BLACK] = black_time
+        self.moves_to_go = moves_to_go
 
     def reset_start_time(self):
         """Set the start time to the current time."""
@@ -118,6 +143,8 @@ class TimeControl(object):
         self.run_color = None
         if self.mode == TimeMode.FIXED:
             logging.debug('timeout - but in "MoveTime" mode, dont fire event')
+        elif self.mode == TimeMode.FISCHER and self.game_time == 0:
+            pass ## molli: simulated median move time => no out of time / game end event
         elif self.active_color is not None:
             display_color = 'WHITE' if self.active_color == chess.WHITE else 'BLACK'
             txt = 'current clock time (before subtracting) is %f and color is %s, out of time event started from %f'
@@ -142,6 +169,36 @@ class TimeControl(object):
         if self.mode == TimeMode.FIXED:
             self.reset()
 
+    def sub_online_time(self, color, i_dec):
+        """Add the increment value to the color given."""
+        assert self.internal_running() is False, 'internal clock still running for: %s' % self.run_color
+  
+        # log times - issue #184
+        w_hms, b_hms = self._log_time()
+        logging.info('before internal time w:%s - b:%s', w_hms, b_hms)
+        if self.internal_time[color] > i_dec and i_dec > 0:
+            self.internal_time[color] -= i_dec
+            self.clock_time[color] -= i_dec
+        
+        # log times - issue #184
+        w_hms, b_hms = self._log_time()
+        logging.info('after internal time w:%s - b:%s', w_hms, b_hms)
+
+    def add_game2(self, color):
+        """Add the tournamment game 2 value to the color given."""
+        assert self.internal_running() is False, 'internal clock still running for: %s' % self.run_color
+        if self.moves_to_go_orig > 0:
+            # log times - issue #184
+            w_hms, b_hms = self._log_time()
+            logging.info('molli: game2 before internal time w:%s - b:%s', w_hms, b_hms)
+            
+            self.internal_time[color] += (self.game_time2 * 60)
+            self.clock_time[color] += (self.game_time2 * 60)
+            
+            # log times - issue #184
+            w_hms, b_hms = self._log_time()
+            logging.info('molli: game2 after internal time w:%s - b:%s', w_hms, b_hms)
+
     def start_internal(self, color, log=True):
         """Start the internal clock."""
         if not self.internal_running():
@@ -154,17 +211,34 @@ class TimeControl(object):
                 logging.info('start internal time w:%s - b:%s [ign]', w_hms, b_hms)
                 logging.info('received clock time w:%s - b:%s [use]',
                              hms_time(self.clock_time[chess.WHITE]), hms_time(self.clock_time[chess.BLACK]))
+                    
+            """
+            # hack to make picochess work WITH DGT board but WITHOUT a clock attached to it
+            # delta should be zero for non-attached / not running clock (with correction for fischer increment)
+            deltaBW = self.clock_time[chess.WHITE] - self.clock_time[chess.BLACK]
+            if self.active_color == chess.BLACK:
+                deltaBW -= self.fisch_inc
+            logging.info('delta: %s', deltaBW)
 
+            if self.clock_time[chess.WHITE] >= self.internal_time[chess.WHITE] and \
+               self.clock_time[chess.BLACK] >= self.internal_time[chess.BLACK] and \
+               deltaBW == 0:
+                logging.info('looks like external clock is not present...not taking over its time now')
+            else:
+                self.internal_time[chess.WHITE] = self.clock_time[chess.WHITE]
+                self.internal_time[chess.BLACK] = self.clock_time[chess.BLACK]
+           
+            """
             w_dir, b_dir = self.get_internal_time(flip_board=False)
             ## molli Avoid strange reset bug to 0
-            if  w_dir != self.clock_time[chess.WHITE] and (self.clock_time[chess.WHITE] == 0 or self.clock_time[chess.WHITE] == self.fisch_inc):
+            if  w_dir != self.clock_time[chess.WHITE] and (self.clock_time[chess.WHITE] == 0 or (self.clock_time[chess.WHITE] == self.fisch_inc and self.mode == TimeMode.FISCHER) or (self.clock_time[chess.WHITE] == self.game_time and self.mode == TimeMode.BLITZ)):
                 logging.debug('molli: Difference in white clock time!')
                 ##self.internal_time[chess.WHITE] = w_dir
                 self.clock_time[chess.WHITE] = w_dir
             else:
                 self.internal_time[chess.WHITE] = self.clock_time[chess.WHITE]
             ## molli Avoid strange reset bug to 0 
-            if b_dir != self.clock_time[chess.BLACK] and (self.clock_time[chess.BLACK] == 0 or self.clock_time[chess.BLACK] == self.fisch_inc):
+            if  b_dir != self.clock_time[chess.BLACK] and (self.clock_time[chess.BLACK] == 0 or (self.clock_time[chess.BLACK] == self.fisch_inc and self.mode == TimeMode.FISCHER) or (self.clock_time[chess.BLACK] == self.game_time and self.mode == TimeMode.BLITZ)):
                 logging.debug('molli: Difference in black clock time!')
                 ##self.internal_time[chess.BLACK] = b_dir
                 self.clock_time[chess.BLACK] = b_dir
@@ -192,13 +266,14 @@ class TimeControl(object):
                 self.timer.join()
             else:
                 logging.warning('time=%s', self.internal_time)
-            used_time = floor((time.time() - self.start_time) * 10) / 10
+            ##used_time = floor((time.time() - self.start_time) * 10) / 10
+            used_time = ceil((time.time() - self.start_time) * 10) / 10  ##molli for online
             if log:
                 logging.info('used time: %s secs', used_time)
             self.internal_time[self.active_color] -= used_time
             if self.internal_time[self.active_color] < 0:
                 self.internal_time[self.active_color] = 0
-
+            
             if log:
                 w_hms, b_hms = self._log_time()
                 logging.info('new internal time w:%s b:%s', w_hms, b_hms)
@@ -211,14 +286,22 @@ class TimeControl(object):
     def uci(self):
         """Return remaining time for both players in an UCI dict."""
         uci_dict = {}
-        if self.mode in (TimeMode.BLITZ, TimeMode.FISCHER):
+        if self.depth > 0: ##molli depth
+            uci_dict['depth'] = str(self.depth)
+        
+        elif self.mode in (TimeMode.BLITZ, TimeMode.FISCHER):
             uci_dict['wtime'] = str(int(self.internal_time[chess.WHITE] * 1000))
             uci_dict['btime'] = str(int(self.internal_time[chess.BLACK] * 1000))
-
+            
             if self.mode == TimeMode.FISCHER:
                 uci_dict['winc'] = str(self.fisch_inc * 1000)
                 uci_dict['binc'] = str(self.fisch_inc * 1000)
+
+            if self.moves_to_go_orig > 0 and self.moves_to_go > 0: ## molli tournament time control
+                uci_dict['movestogo'] = str(self.moves_to_go)
+
         elif self.mode == TimeMode.FIXED:
             uci_dict['movetime'] = str(self.move_time * 1000)
 
         return uci_dict
+
