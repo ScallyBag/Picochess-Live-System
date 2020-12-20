@@ -1456,6 +1456,7 @@ def main():
         nonlocal book_in_use
         nonlocal last_move
         nonlocal com_factor
+        nonlocal online_decrement
         global fen_error_occured
         global position_mode
 
