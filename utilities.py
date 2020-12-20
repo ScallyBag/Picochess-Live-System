@@ -31,6 +31,8 @@ from subprocess import Popen, PIPE
 
 from dgt.translate import DgtTranslate
 from dgt.api import Dgt
+## molli: for switching off the DGT clock display
+from ctypes import cdll
 
 from configobj import ConfigObj, ConfigObjError, DuplicateError
 
@@ -233,13 +235,15 @@ def update_picochess(dgtpi: bool, auto_reboot: bool, dgttranslate: DgtTranslate)
 
 def shutdown(dgtpi: bool, dev: str):
     """Shutdown picochess."""
+    dgt_functions = cdll.LoadLibrary('etc/dgtpicom.so')
     logging.debug('shutting down system requested by (%s)', dev)
     time.sleep(3)  # give some time to send out the pgn file or speak the event
     if platform.system() == 'Windows':
         os.system('shutdown /s')
-    ## molli: allow bluetooth reconnection when switching off and power supply is not cut
-    ##elif dgtpi:
-    ##    os.system('systemctl isolate dgtpistandby.target')
+    elif dgtpi:
+        dgt_functions.dgtpicom_off(1) ## molli: thanks to Lukas & Randy
+        os.system('shutdown -h now')
+    ##  os.system('systemctl isolate dgtpistandby.target')
     else:
         os.system('shutdown -h now')
 
