@@ -12,7 +12,7 @@ This is an enhancement of the last main picochess version 09N and includes chang
 
 IMPORTANT:
 -------------------------------------------------------------------------------------------
-This repository is only for code reference - it won't be a fully 3.0 working version because of the github restrictions (25MB each file and less than 100 files in one folder) so don't expect to be able to use this repository as a working picochess version because a lot of (non source) files are missing for a working V3 (eg. voice samples for V3 features, audo example samples for the replay of games using my pgn_engine or the mame emulator framework).
+This repository is only for code reference - it won't be a fully 3.0 working version because of the github restrictions (25MB each file and less than 100 files in one folder) so don't expect to be able to use this repository as a working picochess version because a lot of (non source) files are missing for a working V3 (eg. voice samples for V3 features, audio example samples for the replay of games using my pgn_engine or the mame emulator framework).
 Further than that the software quality is no longer good - I used the "sledge hammer" in order to achieve some features and lots of global variables & functions are used. I started as an absolute python beginner almost 2 years ago so I would implement some features completly different today.
 
 Installation:
