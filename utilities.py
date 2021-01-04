@@ -281,7 +281,7 @@ def get_location():
 def write_picochess_ini(key: str, value):
     """Update picochess.ini config file with key/value."""
     try:
-        config = ConfigObj('picochess.ini')
+        config = ConfigObj('picochess.ini', default_encoding='utf8')
         config[key] = value
         config.write()
     except (ConfigObjError, DuplicateError) as conf_exc:
