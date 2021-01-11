@@ -880,10 +880,10 @@ class PicoTalkerDisplay(DisplayMsg, threading.Thread):
                     elif '0.5-0.5' in message.result or '1/2-1/2' in message.result:
                         self.talk(['draw.ogg'])
                     elif '*' in message.result:
-                        self.talk(['gane_result_unknown.ogg'])
+                        self.talk(['game_result_unknown.ogg'])
                     else:
                 ## default
-                        self.talk(['gane_result_unknown.ogg'])
+                        self.talk(['game_result_unknown.ogg'])
         
                 elif isinstance(message, Message.TIMECONTROL_CHECK): ##molli tournament TC
                     logging.debug('timecontrol check')
