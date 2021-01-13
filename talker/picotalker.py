@@ -15,9 +15,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-# for this (new version of) picotalker)to work you need to run
-# these command (if you haven't done before)
-# apt-get install python3-pygame
+# This version uses sox. It does not use pygame or ogg123 -RR
+# To install sox use:
+# sudo apt install sox
 
 ###########################################################################
 # Molli: Added new framework for voice comments based on different events
@@ -42,7 +42,6 @@ from dgt.util import GameResult, PlayMode, Voice
 import os
 ##molli
 import time
-import pygame.mixer, pygame.time
 
 class PicoTalker(object):
 
@@ -51,6 +50,7 @@ class PicoTalker(object):
     def __init__(self, localisation_id_voice, speed_factor: float):
         self.voice_path = None
         self.speed_factor = 1.0
+        self.set_speed_factor(speed_factor)
         self.sound = None
         try:
             (localisation_id, voice_name) = localisation_id_voice.split(':')
@@ -64,22 +64,10 @@ class PicoTalker(object):
 
     def set_speed_factor(self, speed_factor: float):
         """Set the speed voice factor."""
-        if self.speed_factor != speed_factor:
-            self.speed_factor = speed_factor
-            base_freq = 44100
-            frequency = int(base_freq * self.speed_factor)
-            """
-            if not pygame.mixer.get_init():
-                pygame.mixer.init(frequency)
-            else:
-            """
-                ##pygame.mixer.stop()
-            pygame.mixer.quit()
-            pygame.mixer.init(frequency)
-    
-        
+        self.speed_factor = speed_factor if which('play') else 1.0  # check for "sox" package
+
     def talk(self, sounds):
-        """Speak out the sound part by using ogg123/play."""
+        """Speak out the sound part by using sox play."""
         if not self.voice_path:
             logging.debug('picotalker turned off')
             return False
@@ -89,14 +77,17 @@ class PicoTalker(object):
         for part in sounds:
             voice_file = vpath + '/' + part
             if Path(voice_file).is_file():
-                while pygame.mixer.get_busy():
-                    time.sleep(0.1)
-                self.sound = pygame.mixer.Sound(voice_file)
-                self.sound.play()
+                command = ['play', voice_file, 'tempo', str(self.speed_factor)]
+                try:  # use blocking call
+                    subprocess.call(command, shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                    result = True
+                except OSError as os_exc:
+                    logging.warning('OSError: %s => turn voice OFF', os_exc)
+                    self.voice_path = None
+                    return False
             else:
                 logging.warning('voice file not found %s', voice_file)
         return result
-
 
 class PicoTalkerDisplay(DisplayMsg, threading.Thread):
 
@@ -105,7 +96,7 @@ class PicoTalkerDisplay(DisplayMsg, threading.Thread):
     USER = 'user'
     COMPUTER = 'computer'
     SYSTEM = 'system'
-    
+
     c_taken     = False #molli
     c_castle    = False #molli
     c_knight    = False #molli
@@ -118,7 +109,7 @@ class PicoTalkerDisplay(DisplayMsg, threading.Thread):
     c_mate      = False #molli
     c_stalemate = False #molli
     c_draw      = False #molli
-    
+
     # add voice comment-factor
     def __init__(self, user_voice: str, computer_voice: str, speed_factor: int, setpieces_voice: bool, comment_factor: int):
         """
@@ -130,7 +121,7 @@ class PicoTalkerDisplay(DisplayMsg, threading.Thread):
         super(PicoTalkerDisplay, self).__init__()
         self.user_picotalker = None  # type: PicoTalker
         self.computer_picotalker = None  # type: PicoTalker
-        self.speed_factor = (90 + (speed_factor % 10) * 5) / 100 ##molli for pygame.mixer
+        self.speed_factor = (90 + (speed_factor % 10) * 5) / 100 ##RR Used by sox.
         self.play_mode = PlayMode.USER_WHITE
         self.low_time = False
         self.play_game = None  # saves the game after a computer move - used for "setpieces" to speak the move again
@@ -164,9 +155,9 @@ class PicoTalkerDisplay(DisplayMsg, threading.Thread):
         self.c_no_bishop     = 0
         self.c_no_knight     = 0
         self.c_no_pawn       = 0
-        
+
         self.c_comment_factor = comment_factor
-        
+
         if user_voice:
             logging.debug('creating user voice: [%s]', str(user_voice))
             self.set_user(PicoTalker(user_voice, self.speed_factor))
@@ -179,15 +170,15 @@ class PicoTalkerDisplay(DisplayMsg, threading.Thread):
         molli: Calculate number of generic filestring files in voice folder
         """
         c_group_no = 0
-        
+
         path = self.computer_picotalker.voice_path
-        
+
         for file in os.listdir(path):
             if file.startswith(filestring):
                 c_group_no += 1
-        
+
         return c_group_no
-    
+
     def set_computer(self, picotalker):
         """Set the computer talker."""
         self.computer_picotalker = picotalker
@@ -343,7 +334,7 @@ class PicoTalkerDisplay(DisplayMsg, threading.Thread):
         else:
             c_prob   = 0
             c_number = 0
-        
+
         return c_number, c_prob
 
     def calc_comment(self, c_group):
@@ -356,14 +347,14 @@ class PicoTalkerDisplay(DisplayMsg, threading.Thread):
         c_number   = 0
         c_prob     = 0
         c_total    = 0
-        
+
         ##logging.debug('molli calc_comment for group [%s]', c_group)
-        
+
         ## get total numbers of possible comments for this event group in dependence of
         ## selected comment speech and lanuage
-        
+
         c_total, c_prob = self.get_total_cgroup(c_group)
-        
+
         if c_prob == 0:
             return talkfile
         ## consider probability factor from picochess.ini
@@ -372,42 +363,42 @@ class PicoTalkerDisplay(DisplayMsg, threading.Thread):
             c_prob = c_prob
         else:
             c_prob = round(c_prob * (self.c_comment_factor/100))
-        
+
         c_number =  round(c_total*(100/c_prob))
-        
+
         if c_number > 1:
             c_rand = randint(1,c_number)
         else:
             c_rand = c_number
-        
+
         c_rand_str = str(c_rand)
-        
+
         if c_rand == 0:
             talkfile = ''
         elif c_rand <= c_total:
             talkfile = 'f_' + c_group + c_rand_str + '.ogg'
         else:
             talkfile = ''
-        
+
         return talkfile
-    
+
     def comment(self, c_group):
         ## molli: define number of possible comments in differrent event groups
         ##        together with a probability factor one can control how
         ##        often a group comment will be spoke
         talkfile = ''
-        
+
         ## get total numbers of possible comments for this event group in dependence of
         ## selected comment speech and lanuage
-        
+
         talkfile = self.calc_comment(c_group)
-        
+
         if talkfile != '':
             self.talk([talkfile])
-                
+
     def move_comment(self):
         talkfile = ''
-        
+
         if PicoTalkerDisplay.c_taken:
             talkfile = self.calc_comment('taken')
         elif PicoTalkerDisplay.c_bishop:
@@ -431,7 +422,7 @@ class PicoTalkerDisplay(DisplayMsg, threading.Thread):
 
         if talkfile != '':
             self.talk([talkfile])
-                
+
         if PicoTalkerDisplay.c_mate:
             talkfile = ''
         elif PicoTalkerDisplay.c_stalemate:
@@ -445,10 +436,10 @@ class PicoTalkerDisplay(DisplayMsg, threading.Thread):
 
         if talkfile != '':
             self.talk([talkfile])
-    
+
     def say_squarepiece(self, fen_result):
         logging.debug('molli: talker fen_result = %s', fen_result)
-     
+
         piece_parts = {
             'K': 't_king.ogg',
             'B': 't_bishop.ogg',
@@ -457,7 +448,7 @@ class PicoTalkerDisplay(DisplayMsg, threading.Thread):
             'Q': 't_queen.ogg',
             'P': 't_pawn.ogg',
         }
-                
+
         square_parts = {
             'a': 't_a.ogg',
             'b': 't_b.ogg',
@@ -476,7 +467,7 @@ class PicoTalkerDisplay(DisplayMsg, threading.Thread):
             '7': 't_7.ogg',
             '8': 't_8.ogg'
         }
-        
+
         sound_file = ''
         voice_parts = []
         result_str = ''
@@ -484,29 +475,29 @@ class PicoTalkerDisplay(DisplayMsg, threading.Thread):
         file = fen_result[-1]
         square_str = rank
         square_str = square_str + ' ' + file
-        
+
         logging.debug('molli: talker square = %s', square_str)
 
         if len(fen_result) > 2:
-            
+
             piece = fen_result[0]
             if piece.islower():
                 voice_parts += ['black.ogg']
                 piece = piece.upper()
             else:
                 voice_parts += ['white.ogg']
-                
+
             logging.debug('molli: talker piece = %s', piece)
-            
+
             try:
                 sound_file = piece_parts[piece]
             except KeyError:
                 sound_file = ''
             if sound_file:
                 voice_parts += [sound_file]
-    
+
             voice_parts += ['on.ogg']
-            
+
             for part in square_str:
                 try:
                     sound_file = square_parts[part]
@@ -522,17 +513,13 @@ class PicoTalkerDisplay(DisplayMsg, threading.Thread):
                     sound_file = ''
                 if sound_file:
                     voice_parts += [sound_file]
-        
+
         logging.debug('molli: talker voice_parts = %s', voice_parts)
         return voice_parts
-        
+
     def run(self):
         """Start listening for Messages on our queue and generate speech as appropriate."""
-        ##molli new player
-        base_freq = 44100
-        frequency = int(base_freq * self.speed_factor)
-        pygame.mixer.init(frequency)
-        
+
         previous_move = chess.Move.null()  # Ignore repeated broadcasts of a move
         last_pos_dir = ''
         logging.info('msg_queue ready')
@@ -556,7 +543,6 @@ class PicoTalkerDisplay(DisplayMsg, threading.Thread):
                         self.comment('newgame') ##molli
                         self.comment('uwhite')  ##molli
                         previous_move = chess.Move.null() ## molli
-                       
 
                 elif isinstance(message, Message.COMPUTER_MOVE):
                     logging.debug('molli: before announcing COMPUTER_MOVE [%s]', message.move)
@@ -666,7 +652,7 @@ class PicoTalkerDisplay(DisplayMsg, threading.Thread):
                         logging.debug('announcing GAME_ENDS/FIVEFOLD_REPETITION')
                         self.talk(['repetition.ogg', 'draw.ogg'])
                         self.comment('draw') ##molli
-        
+
                 elif isinstance(message, Message.TAKE_BACK):
                     logging.debug('announcing TAKE_BACK')
                     self.talk(['takeback.ogg'])
@@ -737,47 +723,47 @@ class PicoTalkerDisplay(DisplayMsg, threading.Thread):
                     self.talk(['pleasewait.ogg'])
                     self.comment('shutdown') ##molli
                     time.sleep(3)
-                
+
                 elif isinstance(message, Message.MOVE_RETRY): ##molli for pgn guessing game
                     logging.debug('announcing MOVE_RETRY')
                     self.talk(['retry_move.ogg'])
-                
+
                 elif isinstance(message, Message.MOVE_WRONG): ##molli for pgn guessing game
                     logging.debug('announcing MOVE_WRONG')
                     self.talk(['wrong_move.ogg'])
-                
+
                 elif isinstance(message, Message.ONLINE_LOGIN): ##molli for online
                     logging.debug('announcing ONLINE_LOGIN')
                     self.talk(['online_login.ogg'])
-                
+
                 elif isinstance(message, Message.SEEKING): ##molli for online
                     logging.debug('announcing SEEKING')
                     self.talk(['seeking.ogg'])
-                
+
                 elif isinstance(message, Message.ONLINE_NAMES): ##molli for online
                     logging.debug('announcing ONLINE_NAMES')
                     self.talk(['opponent_found.ogg'])
-                
+
                 elif isinstance(message, Message.RESTORE_GAME): ##molli for last game restoring
                     logging.debug('announcing RESTORE_GAME')
                     self.talk(['last_game_restored.ogg'])
-                
+
                 elif isinstance(message, Message.ENGINE_SETUP): ##molli for pgn guessing game
                     logging.debug('announcing ENGINE_SETUP')
                     self.talk(['engine_setup.ogg'])
-                
+
                 elif isinstance(message, Message.ONLINE_FAILED): ##molli for online
                     self.talk(['server_error.ogg'])
-    
+
                 elif isinstance(message, Message.ONLINE_USER_FAILED): ##molli for online
                     self.talk(['login_error.ogg'])
-                                                            
+
                 elif isinstance(message, Message.ONLINE_NO_OPPONENT): ##molli for online
                     self.talk(['no_opponent.ogg'])
-                
+
                 elif isinstance(message, Message.LOST_ON_TIME): ##molli for online
                     self.talk(['timelost.ogg'])
-                    
+
                 elif isinstance(message, Message.POSITION_FAIL):
                     logging.debug('molli: talker orig. fen_result = %s', message.fen_result)
                     if last_pos_dir != message.fen_result:
@@ -792,7 +778,7 @@ class PicoTalkerDisplay(DisplayMsg, threading.Thread):
                             self.talk(self.say_squarepiece(fen_str))
                         else:
                             pass
-                
+
                 elif isinstance(message, Message.PICOTUTOR_MSG): ##molli picotutor
                     if '??' == message.eval_str:
                         self.talk(['picotutor_notify.ogg'])
@@ -852,7 +838,7 @@ class PicoTalkerDisplay(DisplayMsg, threading.Thread):
                         list_mate = list_str.split('_')
                         logging.debug('molli in picotutortalker: %s', list_mate[0])
                         logging.debug('molli in picotutortalker: %s', list_mate[1])
-                        
+
                         talk_mate = 't_' + list_mate[1] + '.ogg'
                         logging.debug('talk_mate = %s', talk_mate)
                         self.talk([talk_mate])
@@ -863,11 +849,11 @@ class PicoTalkerDisplay(DisplayMsg, threading.Thread):
                         list_mate = list_str.split('_')
                         logging.debug('molli in picotutortalker: %s', list_mate[0])
                         logging.debug('molli in picotutortalker: %s', list_mate[1])
-                        
+
                         talk_mate = 't_' + list_mate[1] + '.ogg'
                         logging.debug('talk_mate = %s', talk_mate)
                         self.talk([talk_mate])
-                    
+
                 elif isinstance(message, Message.PGN_GAME_END): ##molli for pgn replay
                     logging.debug('announcing PGN GAME END')
                     previous_move = chess.Move.null()
@@ -884,22 +870,21 @@ class PicoTalkerDisplay(DisplayMsg, threading.Thread):
                     else:
                 ## default
                         self.talk(['game_result_unknown.ogg'])
-        
+
                 elif isinstance(message, Message.TIMECONTROL_CHECK): ##molli tournament TC
                     logging.debug('timecontrol check')
                     self.talk(['picotutor_notify.ogg'])
-                    
                     if message.player == True:
                         self.talk(['timecontrol_check_player.ogg'])
                     else:
                         self.talk(['timecontrol_check_opp.ogg'])
-                            
+
                 elif isinstance(message, Message.SHOW_ENGINENAME):
                     if message.show_enginename:
                         self.talk(['show_enginename_on.ogg'])
                     else:
                         self.talk(['show_enginename_off.ogg'])
-        
+
                 elif isinstance(message, Message.SHOW_TEXT):
                     if message.text_string == 'NEW_POSITION':
                         if self.setpieces_voice:
@@ -911,42 +896,42 @@ class PicoTalkerDisplay(DisplayMsg, threading.Thread):
                     else:
                         self.talk(['picowatcher_disabled.ogg'])
                     self.talk(['picotutor_ok.ogg'])
-            
+
                 elif isinstance(message, Message.PICOCOACH):
                     if message.picocoach:
                         self.talk(['picocoach_enabled.ogg'])
                     else:
                         self.talk(['picocoach_disabled.ogg'])
                     self.talk(['picotutor_ok.ogg'])
-        
+
                 elif isinstance(message, Message.PICOEXPLORER):
                     if message.picoexplorer:
                         self.talk(['picoexplorer_enabled.ogg'])
                     else:
                         self.talk(['picoexplorer_disabled.ogg'])
                     self.talk(['picotutor_ok.ogg'])
-        
+
                 elif isinstance(message, Message.PICOCOMMENT):
                     self.talk(['picotutor_ok.ogg'])
-            
+
                 elif isinstance(message, Message.SAVE_GAME):
                     self.talk(['save_game.ogg'])
-        
+
                 elif isinstance(message, Message.READ_GAME):
                     self.talk(['read_game.ogg'])
-                
+
                 elif isinstance(message, Message.CONTLAST):
                     if message.contlast:
                         self.talk(['contlast_game_on.ogg'])
                     else:
                         self.talk(['contlast_game_off.ogg'])
-                
+
                 elif isinstance(message, Message.ALTMOVES):
                     if message.altmoves:
                         self.talk(['altmoves_on.ogg'])
                     else:
                         self.talk(['altmoves_off.ogg'])
-        
+
                 elif isinstance(message, Message.SET_VOICE):
                     self.speed_factor = (90 + (message.speed % 10) * 5) / 100
                     localisation_id_voice = message.lang + ':' + message.speaker
@@ -957,7 +942,7 @@ class PicoTalkerDisplay(DisplayMsg, threading.Thread):
                     if message.type == Voice.SPEED:
                         self.set_factor(self.speed_factor)
                     self.talk(['ok.ogg']) ##molli
-        
+
                 elif isinstance(message, Message.WRONG_FEN):
                     if self.setpieces_voice:
                         self.talk(['set_pieces_sound.ogg'])
@@ -972,7 +957,7 @@ class PicoTalkerDisplay(DisplayMsg, threading.Thread):
     @staticmethod
     def say_last_move(game: chess.Board):
         """Take a chess.BitBoard instance and speaks the last move from it."""
-        
+
         PicoTalkerDisplay.c_taken     = False #molli
         PicoTalkerDisplay.c_castle    = False #molli
         PicoTalkerDisplay.c_knight    = False #molli
@@ -985,7 +970,7 @@ class PicoTalkerDisplay(DisplayMsg, threading.Thread):
         PicoTalkerDisplay.c_mate      = False #molli
         PicoTalkerDisplay.c_stalemate = False #molli
         PicoTalkerDisplay.c_draw      = False #molli
-        
+
         move_parts = {
             'K': 'king.ogg',
             'B': 'bishop.ogg',
@@ -1019,7 +1004,6 @@ class PicoTalkerDisplay(DisplayMsg, threading.Thread):
         move = bit_board.pop()
         san_move = bit_board.san(move)
         voice_parts = []
-
         if san_move.startswith('O-O-O'):
             voice_parts += ['castlequeenside.ogg']
             PicoTalkerDisplay.c_castle = True
@@ -1074,10 +1058,9 @@ class PicoTalkerDisplay(DisplayMsg, threading.Thread):
 
         if bit_board.is_en_passant(move):
             voice_parts += ['enpassant.ogg']
-                
+
         return voice_parts
 
-    
     @staticmethod
     def say_tutor_move(game: chess.Board):
         """Take a chess.BitBoard instance and speaks the last move from it."""
@@ -1109,12 +1092,12 @@ class PicoTalkerDisplay(DisplayMsg, threading.Thread):
             '7': 't_7.ogg',
             '8': 't_8.ogg'
         }
-        
+
         bit_board = game.copy()
         move = bit_board.pop()
         san_move = bit_board.san(move)
         voice_parts = []
-        
+
         if san_move.startswith('O-O-O'):
             voice_parts += ['t_castlequeenside.ogg']
         elif san_move.startswith('O-O'):
@@ -1135,5 +1118,6 @@ class PicoTalkerDisplay(DisplayMsg, threading.Thread):
 
         if bit_board.is_en_passant(move):
             voice_parts += ['t_enpassant.ogg']
-        
+
         return voice_parts
+
