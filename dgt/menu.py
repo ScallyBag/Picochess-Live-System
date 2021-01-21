@@ -1139,9 +1139,11 @@ class DgtMenu(object):
     def set_volume_voice(self, volume_factor): #WD
         """ Set the Volume-Voice."""
         ##logging.debug('amixer sset PCM ' + str(volume_factor * 5 + 50) + '%')
+        ##logging.debug('amixer sset Headphone ' + str(volume_factor * 5 + 50) + '%')
         logging.debug('amixer sset Headphone ' + str(volume_factor * 5 + 50) + '%')
-        ## os.system('amixer sset PCM ' + str(volume_factor * 5 + 50) + '%')
-        os.system('amixer sset Headphone ' + str(volume_factor * 5 + 50) + '%') ## BUSTER Fix
+        ##os.system('amixer sset PCM ' + str(volume_factor * 5 + 50) + '%')
+        ##os.system('amixer sset Headphone ' + str(volume_factor * 5 + 50) + '%') ## BUSTER Fix
+        os.system('amixer sset Headphone ' + str(volume_factor * 5 + 50) + '%') ## PulseAudio Fix for DGTPi -RR
         return
 
     def enter_sys_disp_menu(self):
@@ -3115,3 +3117,4 @@ class DgtMenu(object):
     def get_current_text(self):
         """Return the current text."""
         return self.current_text
+
